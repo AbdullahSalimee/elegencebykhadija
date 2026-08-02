@@ -1,18 +1,101 @@
-import Link from 'next/link';
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Shirt,
+  ClipboardList,
+  Settings,
+  ArrowLeft,
+} from "lucide-react";
+
+const NAV = [
+  {
+    group: "Overview",
+    items: [
+      {
+        href: "/admin",
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        exact: true,
+      },
+    ],
+  },
+  {
+    group: "Catalogue",
+    items: [
+      { href: "/admin/products", label: "Products & Stock", icon: Shirt },
+    ],
+  },
+  {
+    group: "Sales",
+    items: [{ href: "/admin/orders", label: "Orders", icon: ClipboardList }],
+  },
+  {
+    group: "Site",
+    items: [
+      {
+        href: "/admin/settings",
+        label: "Navigation & Categories",
+        icon: Settings,
+      },
+    ],
+  },
+];
 
 export default function AdminLayout({ children }) {
+  const pathname = usePathname();
+
+  const isActive = (item) =>
+    item.exact ? pathname === item.href : pathname?.startsWith(item.href);
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh' }}>
-      <aside style={{ borderRight: '1px solid var(--color-divider)', padding: 24 }}>
-        <div className="nav-brand" style={{ marginBottom: 24, fontSize: 16 }}>ELEGANCE <span style={{ opacity: .55, fontStyle: 'italic' }}>admin</span></div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Link href="/admin" style={{ padding: '8px 10px', borderRadius: 4, fontSize: 14 }}>Dashboard</Link>
-          <Link href="/admin/products" style={{ padding: '8px 10px', borderRadius: 4, fontSize: 14 }}>Products &amp; Stock</Link>
-          <Link href="/admin/orders" style={{ padding: '8px 10px', borderRadius: 4, fontSize: 14 }}>Orders</Link>
-          <Link href="/" style={{ padding: '8px 10px', borderRadius: 4, fontSize: 14, opacity: .6, marginTop: 16 }}>← Back to storefront</Link>
-        </nav>
+    <div className="admin-shell">
+      <aside className="admin-side">
+        <div className="admin-side-brand">
+          ELEGANCE <span>by Khadija</span>
+        </div>
+        <div className="admin-side-tag">Back of Shop</div>
+
+        {NAV.map((section) => (
+          <div className="admin-nav-group" key={section.group}>
+            <div className="admin-nav-label">{section.group}</div>
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`admin-nav-link${isActive(item) ? " active" : ""}`}
+                >
+                  <Icon size={16} strokeWidth={1.8} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+
+        <div className="admin-side-footer">
+          <Link href="/" className="admin-back-link">
+            <ArrowLeft size={14} strokeWidth={1.8} />
+            Back to storefront
+          </Link>
+        </div>
       </aside>
-      <main style={{ padding: 40 }}>{children}</main>
+
+      <div className="admin-main">
+        <div className="admin-topbar">
+          <div>
+            <div className="admin-topbar-title">Boutique Console</div>
+            <div className="admin-topbar-meta">
+              Lahore, Pakistan · Monday, 3 August 2026
+            </div>
+          </div>
+          <div className="admin-avatar">K</div>
+        </div>
+        <main className="admin-content">{children}</main>
+      </div>
     </div>
   );
 }
