@@ -13,7 +13,7 @@ export default function Hero() {
             <button className="btn btn-secondary">Fabric Guide</button>
           </div>
         </div>
-        <div className="plate ph" style={{ height: 420 }}><span>hero photograph — model in unstitched lawn suit, studio</span></div>
+        <div className="plate ph" style={{ height: 420 }}>  <img src="hero1.png" alt="hero photograph — model in unstitched lawn suit, studio" /></div>
       </div>
       <div className="hr" style={{ margin: '0 48px' }} />
     </>
