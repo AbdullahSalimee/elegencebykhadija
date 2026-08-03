@@ -86,7 +86,7 @@ export default function FabricGuidePage() {
                   </div>
                 </div>
                 <a
-                  href={`/#products-anchor`}
+                  href={`/shop`}
                   className="btn btn-primary"
                   style={{ marginTop: 20, alignSelf: "flex-start" }}
                 >

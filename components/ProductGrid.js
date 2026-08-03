@@ -8,10 +8,10 @@ export default function ProductGrid() {
     <div id="products-anchor" style={{ padding: '56px 48px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 24 }}>
         <h2 style={{ fontSize: 28 }}>Unstitched Suits</h2>
-        <a href="#" style={{ fontSize: 13 }}>View all →</a>
+        <a href="/shop" style={{ fontSize: 13 }}>View all →</a>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 28 }}>
-        {PRODUCTS.map((p) => (
+        {PRODUCTS.slice(0, 6).map((p) => (
           <div key={p.id} className="card" style={{ cursor: 'pointer', padding: 0, border: 'none' }} onClick={() => openProduct(p.id)}>
             <div className="plate ph" style={{ height: 260 }}><span>{p.name} — product photo</span></div>
             <div style={{ padding: '6px 2px' }}>
