@@ -20,7 +20,7 @@ export default function NewInPage() {
   );
 
   return (
-    <div>
+    <div className="pg-new">
       <Nav />
 
       <div className="page-head" style={{ padding: "64px 48px 8px" }}>

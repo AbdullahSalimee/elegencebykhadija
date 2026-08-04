@@ -6,7 +6,7 @@ export const metadata = { title: "Fabric Guide — Elegance by Khadija" };
 
 export default function FabricGuidePage() {
   return (
-    <div>
+    <div className="pg-fabric">
       <Nav />
 
       <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 780 }}>

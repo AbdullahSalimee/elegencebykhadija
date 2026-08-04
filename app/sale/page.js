@@ -18,7 +18,7 @@ export default function SalePage() {
   const bestPct = onSale.length > 0 ? Math.max(...onSale.map((p) => p.pct)) : 0;
 
   return (
-    <div>
+    <div className="pg-sale">
       <Nav />
 
       <div

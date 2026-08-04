@@ -14,7 +14,7 @@ export default function ContactPage() {
   )}`;
 
   return (
-    <div>
+    <div className="pg-contact">
       <Nav />
 
       <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 680 }}>

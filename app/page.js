@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 
 export default function HomePage() {
   return (
-    <div>
+    <div className="pg-home">
       <div className="announce">
         Free shipping on orders above Rs. 4,999 · Cash on Delivery available across Pakistan
       </div>

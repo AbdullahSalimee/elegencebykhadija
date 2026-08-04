@@ -7,7 +7,7 @@ export const metadata = { title: "Shop All — Elegance by Khadija" };
 
 export default function ShopPage() {
   return (
-    <div>
+    <div className="pg-shop">
       <Nav />
 
       <div className="page-head" style={{ padding: "48px 48px 0" }}>

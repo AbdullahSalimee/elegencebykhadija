@@ -1241,3 +1241,182 @@ textarea.input { min-height: 90px; resize: vertical; }
   .orders-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .orders-table-wrap .admin-table { min-width: 640px; }
 }
+
+/* ============================================================
+   Page entrance — components rise in, staggered, on every load
+   and on client-side navigation (components remount, so the
+   animation replays).
+   ============================================================ */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(34px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.announce { animation: fadeIn .5s ease both; }
+.nav { animation: var(--enter, riseIn) .34s cubic-bezier(.22,.9,.3,1) both; }
+
+.hero > *,
+.page-head,
+.trust-strip,
+.section,
+.page-body > *,
+.fabric-card,
+.footer-cta,
+.site-footer,
+.admin-topbar,
+.admin-content > * {
+  animation: var(--enter, riseIn) var(--enter-dur, .5s) var(--enter-ease, cubic-bezier(.22,.9,.3,1)) both;
+}
+
+/* Stagger: each successive block starts a beat later. */
+.hero > *:nth-child(2)      { animation-delay: .08s; }
+.trust-strip               { animation-delay: .10s; }
+.section                   { animation-delay: .14s; }
+.footer-cta                { animation-delay: .06s; }
+
+.page-body > *:nth-child(1) { animation-delay: .04s; }
+.page-body > *:nth-child(2) { animation-delay: .08s; }
+.page-body > *:nth-child(3) { animation-delay: .12s; }
+.page-body > *:nth-child(4) { animation-delay: .16s; }
+.page-body > *:nth-child(n+5) { animation-delay: .2s; }
+
+.admin-content > *:nth-child(1) { animation-delay: .05s; }
+.admin-content > *:nth-child(2) { animation-delay: .12s; }
+.admin-content > *:nth-child(n+3) { animation-delay: .19s; }
+
+/* Cards inside a grid cascade rather than landing as one slab. */
+.product-grid > *, .newin-grid > *, .shop-grid > *, .stat-grid > * {
+  animation: var(--enter-card, var(--enter, riseIn)) var(--enter-dur, .42s) var(--enter-ease, cubic-bezier(.22,.9,.3,1)) both;
+}
+.product-grid > *:nth-child(1), .newin-grid > *:nth-child(1), .shop-grid > *:nth-child(1), .stat-grid > *:nth-child(1) { animation-delay: .10s; }
+.product-grid > *:nth-child(2), .newin-grid > *:nth-child(2), .shop-grid > *:nth-child(2), .stat-grid > *:nth-child(2) { animation-delay: .15s; }
+.product-grid > *:nth-child(3), .newin-grid > *:nth-child(3), .shop-grid > *:nth-child(3), .stat-grid > *:nth-child(3) { animation-delay: .20s; }
+.product-grid > *:nth-child(4), .newin-grid > *:nth-child(4), .shop-grid > *:nth-child(4), .stat-grid > *:nth-child(4) { animation-delay: .25s; }
+.product-grid > *:nth-child(n+5), .newin-grid > *:nth-child(n+5), .shop-grid > *:nth-child(n+5) { animation-delay: .30s; }
+
+/* Modals and drawers get their own entrance. */
+.dialog-backdrop { animation: fadeIn .22s ease both; }
+.modal-shell { animation: riseIn .34s cubic-bezier(.22,.9,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .announce, .nav, .hero > *, .page-head, .trust-strip, .section,
+  .page-body > *, .fabric-card, .footer-cta, .site-footer,
+  .admin-topbar, .admin-content > *, .product-grid > *, .newin-grid > *,
+  .shop-grid > *, .stat-grid > *, .dialog-backdrop, .modal-shell {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   Per-page entrance character
+   Each page root sets --enter (and optionally --enter-card); the
+   staggered delays above are shared, so only the keyframe changes.
+   ============================================================ */
+
+/* Home — cloth falling: blocks pivot down from their top edge in 3D,
+   the way a length of fabric drops when you let go of it. */
+@keyframes silkDrop {
+  from { opacity: 0; transform: perspective(1100px) rotateX(-13deg) translateY(-26px) scale(.975); }
+  to   { opacity: 1; transform: perspective(1100px) rotateX(0) translateY(0) scale(1); }
+}
+/* Editorial mask-rise: the line climbs out from behind its own baseline. */
+@keyframes maskRise {
+  from { opacity: 0; clip-path: inset(0 0 105% 0); transform: translateY(28px); }
+  to   { opacity: 1; clip-path: inset(-40% -40% -40% -40%); transform: none; }
+}
+/* The hero plate wipes open... */
+@keyframes curtain {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+/* ...while the photograph inside settles out of a slow push-in. */
+@keyframes kenburns {
+  from { transform: scale(1.18); }
+  to   { transform: scale(1); }
+}
+
+/* Shop — the whole collection focusing into view at once. */
+@keyframes bloom {
+  from { opacity: 0; transform: scale(.95); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes bloomCard {
+  from { opacity: 0; transform: scale(.9) translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* New In — entries being written into the arrivals log, left to right. */
+@keyframes threadIn {
+  from { opacity: 0; transform: translateX(-46px); clip-path: inset(0 100% 0 0); }
+  to   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+}
+
+/* Sale — a price stamp coming down on the ledger, with the overshoot. */
+@keyframes stampIn {
+  from { opacity: 0; transform: scale(1.14) translateY(-10px); }
+  55%  { opacity: 1; transform: scale(.975); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Fabric Guide — swatches laid onto the table from alternating sides. */
+@keyframes swatchL {
+  from { opacity: 0; transform: translateX(-64px) rotate(-2.5deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes swatchR {
+  from { opacity: 0; transform: translateX(64px) rotate(2.5deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Contact — messages rising into a thread, with a soft overshoot. */
+@keyframes bubbleUp {
+  from { opacity: 0; transform: translateY(40px) scale(.94); }
+  70%  { opacity: 1; transform: translateY(-6px) scale(1.012); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Admin — the ledger opens flat and fast; no flourish. */
+@keyframes ledgerIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pg-home    { --enter: silkDrop; --enter-dur: .55s; --enter-ease: cubic-bezier(.2,.9,.25,1); }
+.pg-home .hero { transform-style: preserve-3d; }
+.pg-home .hero > * { transform-origin: top center; }
+
+/* The hero is hand-timed rather than sharing the generic stagger: the
+   copy column fades so its children's mask-rise reads on its own. */
+.pg-home .hero > *:first-child { animation: fadeIn .3s ease both; }
+.pg-home .hero > *:first-child > .tag,
+.pg-home .hero-title,
+.pg-home .hero-copy,
+.pg-home .hero-actions {
+  animation: maskRise .62s cubic-bezier(.2,.85,.28,1) both;
+}
+.pg-home .hero > *:first-child > .tag { animation-delay: .04s; }
+.pg-home .hero-title   { animation-delay: .12s; }
+.pg-home .hero-copy    { animation-delay: .22s; }
+.pg-home .hero-actions { animation-delay: .32s; }
+
+.pg-home .hero-photo { animation: curtain .78s cubic-bezier(.65,0,.2,1) both; animation-delay: .1s; }
+.pg-home .hero-photo img { animation: kenburns 1.1s cubic-bezier(.2,.8,.3,1) both; animation-delay: .1s; }
+.pg-shop    { --enter: bloom;    --enter-card: bloomCard; --enter-dur: .38s; }
+.pg-new     { --enter: threadIn; --enter-dur: .5s; }
+.pg-sale    { --enter: stampIn;  --enter-dur: .5s; --enter-ease: cubic-bezier(.3,1.5,.45,1); }
+.pg-fabric  { --enter: swatchL;  --enter-dur: .5s; }
+.pg-contact { --enter: bubbleUp; --enter-dur: .55s; --enter-ease: cubic-bezier(.25,1.2,.4,1); }
+.admin-shell { --enter: ledgerIn; --enter-dur: .3s; }
+
+/* Fabric cards alternate sides to match the row-reverse layout. */
+.pg-fabric .fabric-card:nth-child(even) { animation-name: swatchR; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-home, .pg-shop, .pg-new, .pg-sale, .pg-fabric, .pg-contact, .admin-shell {
+    --enter: none; --enter-card: none;
+  }
+  .pg-home .hero > *, .pg-home .hero > *:first-child > .tag,
+  .pg-home .hero-title, .pg-home .hero-copy, .pg-home .hero-actions,
+  .pg-home .hero-photo, .pg-home .hero-photo img { animation: none !important; }
+}
