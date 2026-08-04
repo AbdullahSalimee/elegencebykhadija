@@ -17,7 +17,7 @@ export default function ContactPage() {
     <div>
       <Nav />
 
-      <div style={{ padding: "56px 48px 20px", maxWidth: 680 }}>
+      <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 680 }}>
         <div className="tag tag-outline" style={{ marginBottom: 16 }}>
           Get in touch
         </div>
@@ -30,6 +30,7 @@ export default function ContactPage() {
       </div>
 
       <div
+        className="page-body contact-grid"
         style={{
           padding: "24px 48px 64px",
           display: "grid",

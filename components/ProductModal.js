@@ -22,6 +22,7 @@ export default function ProductModal() {
   return (
     <div className="dialog-backdrop" onClick={closeProduct}>
       <div
+        className="modal-shell"
         style={{ width: "min(900px,92vw)" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -29,7 +30,7 @@ export default function ProductModal() {
           className="dialog"
           style={{ width: "100%", padding: 0, overflow: "hidden" }}
         >
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+          <div className="modal-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             <div className="plate ph" style={{ minHeight: 380 }}>
               <span>{p.name} — full product photo</span>
             </div>

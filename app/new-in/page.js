@@ -1,6 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import ProductRow from "@/components/ProductRow";
+import NewInGrid from "@/components/NewInGrid";
 import { PRODUCTS } from "@/lib/products";
 
 export const metadata = { title: "New In — Elegance by Khadija" };
@@ -19,48 +19,48 @@ export default function NewInPage() {
     b.arrivedAt.localeCompare(a.arrivedAt),
   );
 
-  // Group consecutive products by arrival date for the log-entry headers.
-  const groups = [];
-  sorted.forEach((p) => {
-    const last = groups[groups.length - 1];
-    if (last && last.date === p.arrivedAt) last.items.push(p);
-    else groups.push({ date: p.arrivedAt, items: [p] });
-  });
-
   return (
     <div>
       <Nav />
 
-      <div style={{ padding: "56px 48px 20px" }}>
-        <div className="tag tag-outline" style={{ marginBottom: 16 }}>
-          Arrivals Log
+      <div className="page-head" style={{ padding: "64px 48px 8px" }}>
+        <div
+          className="page-head-row"
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 24,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div
+              className="tag tag-outline"
+              style={{ marginBottom: 16, letterSpacing: ".08em", textTransform: "uppercase" }}
+            >
+              New Arrivals
+            </div>
+            <h1 style={{ fontSize: 52, maxWidth: "16ch", margin: 0 }}>
+              Fresh off the loom.
+            </h1>
+            <p style={{ maxWidth: "50ch", fontSize: 16, opacity: 0.75, margin: "14px 0 0" }}>
+              The newest pieces to land in the studio — newest first. Once a
+              colourway sells out, it doesn't come back.
+            </p>
+          </div>
+          <div className="page-head-aside" style={{ textAlign: "right", fontSize: 13, opacity: 0.6, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 30, fontFamily: "var(--font-heading)", fontWeight: 600, color: "var(--color-accent-700)", lineHeight: 1 }}>
+              {sorted.length}
+            </div>
+            pieces this drop
+            <br />
+            as of {formatDate(sorted[0]?.arrivedAt)}
+          </div>
         </div>
-        <h1 style={{ fontSize: 48, maxWidth: "16ch" }}>
-          What just came off the loom.
-        </h1>
-        <p style={{ maxWidth: "52ch", fontSize: 16, opacity: 0.8 }}>
-          Every piece here landed in the last few weeks — logged the day it
-          arrived, newest first. Once a colourway sells out, it doesn't come
-          back.
-        </p>
       </div>
 
-      <div style={{ padding: "8px 48px 64px", position: "relative" }}>
-        <div className="arrivals-spine" />
-        {groups.map((g) => (
-          <div key={g.date} className="arrivals-group">
-            <div className="arrivals-date">
-              <span className="arrivals-dot" />
-              {formatDate(g.date)}
-            </div>
-            <div className="arrivals-items">
-              {g.items.map((p) => (
-                <ProductRow key={p.id} product={p} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <NewInGrid products={sorted} />
 
       <Footer />
     </div>

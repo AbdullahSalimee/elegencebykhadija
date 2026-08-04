@@ -10,7 +10,7 @@ export default function ShopPage() {
     <div>
       <Nav />
 
-      <div style={{ padding: "48px 48px 0" }}>
+      <div className="page-head" style={{ padding: "48px 48px 0" }}>
         <div className="tag tag-outline" style={{ marginBottom: 16 }}>
           The full collection
         </div>

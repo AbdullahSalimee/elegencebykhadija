@@ -113,6 +113,7 @@ export default function AdminDashboard() {
       </div>
 
       <div
+        className="admin-split"
         style={{
           display: "grid",
           gridTemplateColumns: "1.4fr 1fr",
@@ -241,7 +242,7 @@ export default function AdminDashboard() {
       </div>
 
       <div
-        style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20 }}
+        className="admin-split" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20 }}
       >
         <div className="panel">
           <div className="panel-head">

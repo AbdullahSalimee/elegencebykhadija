@@ -173,6 +173,7 @@ export default function AdminProducts() {
           return (
             <div key={p.id} className="panel" style={{ paddingBottom: 6 }}>
               <div
+                className="admin-product-head"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -229,6 +230,7 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 <div
+                  className="admin-product-controls"
                   style={{ display: "flex", gap: 10, alignItems: "flex-end" }}
                 >
                   <div className="field" style={{ width: 140 }}>
@@ -399,6 +401,7 @@ export default function AdminProducts() {
               </div>
 
               <div
+                className="form-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
@@ -437,6 +440,7 @@ export default function AdminProducts() {
               </div>
 
               <div
+                className="form-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",

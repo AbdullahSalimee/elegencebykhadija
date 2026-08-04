@@ -1,8 +1,8 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
 import { CATEGORIES } from "@/lib/site-config";
-import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, X, ChevronDown, Grid2x2, Grid3x3, LayoutGrid } from "lucide-react";
 
 const FABRICS = ["Lawn", "Silk", "Karandi"];
 const PIECE_OPTIONS = ["2 Piece", "3 Piece"];
@@ -31,6 +31,17 @@ export default function ShopBrowser({ products }) {
   const [onSaleOnly, setOnSaleOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sort, setSort] = useState("newest");
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef(null);
+  const [gridCols, setGridCols] = useState(4);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const toggle = (list, setList, value) =>
     setList(
@@ -83,7 +94,7 @@ export default function ShopBrowser({ products }) {
   }, [products, categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, sort]);
 
   return (
-    <div style={{ padding: "24px 48px 64px" }}>
+    <div className="page-body" style={{ padding: "24px 48px 64px" }}>
       <div className="shop-topbar">
         <button
           className="btn btn-secondary shop-filter-toggle"
@@ -100,20 +111,95 @@ export default function ShopBrowser({ products }) {
           {filtered.length} of {products.length} pieces
         </div>
 
-        <div className="admin-select-wrap" style={{ marginLeft: "auto" }}>
-          <select
-            className="select-native"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            aria-label="Sort products"
+        <div ref={sortRef} style={{ position: "relative", marginLeft: "auto" }}>
+          <button
+            onClick={() => setSortOpen((v) => !v)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              font: "inherit",
+              fontSize: 13,
+              padding: "8px 30px 8px 12px",
+              border: "1px solid var(--color-divider)",
+              borderRadius: "var(--radius-md)",
+              background: "var(--color-bg)",
+              cursor: "pointer",
+              color: "inherit",
+              whiteSpace: "nowrap",
+            }}
           >
-            {SORTS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="select-chevron" />
+            {SORTS.find((s) => s.id === sort)?.label}
+          </button>
+          <ChevronDown size={14} style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", opacity: 0.55 }} />
+          {sortOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                right: 0,
+                marginTop: 4,
+                minWidth: 180,
+                background: "var(--color-bg)",
+                border: "1px solid var(--color-divider)",
+                borderRadius: "var(--radius-md)",
+                boxShadow: "var(--shadow-md)",
+                zIndex: 50,
+                overflow: "hidden",
+              }}
+            >
+              {SORTS.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => { setSort(s.id); setSortOpen(false); }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    font: "inherit",
+                    fontSize: 13,
+                    padding: "9px 14px",
+                    border: "none",
+                    background: sort === s.id ? "color-mix(in srgb, var(--color-accent) 10%, transparent)" : "transparent",
+                    color: sort === s.id ? "var(--color-accent-700)" : "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "flex", gap: 2, marginLeft: 12 }}>
+          {[
+            { cols: 2, Icon: Grid2x2 },
+            { cols: 3, Icon: Grid3x3 },
+            { cols: 4, Icon: LayoutGrid },
+          ].map(({ cols, Icon }) => (
+            <button
+              key={cols}
+              onClick={() => setGridCols(cols)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                border: "1px solid",
+                borderColor: gridCols === cols ? "var(--color-accent-700)" : "var(--color-neutral-300)",
+                borderRadius: 6,
+                background: gridCols === cols ? "var(--color-accent-700)" : "transparent",
+                color: gridCols === cols ? "#fff" : "inherit",
+                cursor: "pointer",
+                transition: "all .15s ease",
+              }}
+              aria-label={`${cols} columns`}
+            >
+              <Icon size={15} strokeWidth={1.8} />
+            </button>
+          ))}
         </div>
       </div>
 
@@ -241,7 +327,7 @@ export default function ShopBrowser({ products }) {
               </button>
             </div>
           ) : (
-            <div className="shop-grid">
+            <div className="shop-grid" style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}>
               {filtered.map((p) => (
                 <div
                   key={p.id}
@@ -249,7 +335,7 @@ export default function ShopBrowser({ products }) {
                   style={{ cursor: "pointer", padding: 0, border: "none" }}
                   onClick={() => openProduct(p.id)}
                 >
-                  <div className="plate ph" style={{ height: 240, position: "relative" }}>
+                  <div className="plate ph" style={{ height: 420, position: "relative" }}>
                     <span>{p.name} — product photo</span>
                     {p.compareAt && p.compareAt > p.price && (
                       <span

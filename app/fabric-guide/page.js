@@ -9,7 +9,7 @@ export default function FabricGuidePage() {
     <div>
       <Nav />
 
-      <div style={{ padding: "56px 48px 20px", maxWidth: 780 }}>
+      <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 780 }}>
         <div className="tag tag-outline" style={{ marginBottom: 16 }}>
           Know your fabric
         </div>
@@ -22,6 +22,7 @@ export default function FabricGuidePage() {
       </div>
 
       <div
+        className="page-body"
         style={{
           padding: "24px 48px 64px",
           display: "flex",

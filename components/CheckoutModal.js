@@ -10,7 +10,7 @@ export default function CheckoutModal() {
   return (
     <div className="dialog-backdrop" onClick={closeCheckout}>
       <div onClick={(e) => e.stopPropagation()}>
-        <div className="dialog" style={{ width: 'min(480px,92vw)' }}>
+        <div className="dialog modal-shell" style={{ width: 'min(480px,92vw)' }}>
           {orderPlaced ? (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <div className="dialog-title" style={{ marginBottom: 8 }}>Order Received</div>

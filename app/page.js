@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 export default function HomePage() {
   return (
     <div>
-      <div style={{ background: 'var(--color-neutral-900)', color: '#f3ead9', textAlign: 'center', fontSize: 12, letterSpacing: '.05em', padding: 8 }}>
+      <div className="announce">
         Free shipping on orders above Rs. 4,999 · Cash on Delivery available across Pakistan
       </div>
       <Nav />

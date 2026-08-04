@@ -53,7 +53,7 @@ export default function AdminSettings() {
       </p>
 
       <div
-        style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 20 }}
+        className="admin-split" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 20 }}
       >
         <div className="panel">
           <div className="panel-head">

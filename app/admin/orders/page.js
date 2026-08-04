@@ -82,7 +82,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      <div className="panel" style={{ padding: 0 }}>
+      <div className="panel orders-table-wrap" style={{ padding: 0 }}>
         <table className="admin-table">
           <thead>
             <tr>
