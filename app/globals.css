@@ -820,14 +820,21 @@ textarea.input { min-height: 90px; resize: vertical; }
 .shop-sidebar-backdrop { display: none; }
 
 .shop-results { min-width: 0; }
+.shop-grid-toggle { display: flex; gap: 2px; margin-left: 12px; }
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Column count comes from the topbar toggle as a custom property, not an
+     inline grid-template-columns — an inline value would outrank the
+     responsive rules below and pin phones to the desktop column count. */
+  grid-template-columns: repeat(var(--shop-cols, 4), 1fr);
   gap: 24px 22px;
 }
 
+/* Below this width the layout picks the column count, so the manual
+   toggle would only fight it. */
 @media (max-width: 1080px) {
   .shop-grid { grid-template-columns: repeat(3, 1fr); }
+  .shop-grid-toggle { display: none; }
 }
 
 @media (max-width: 860px) {

@@ -172,7 +172,7 @@ export default function ShopBrowser({ products }) {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 2, marginLeft: 12 }} className="md:hidden lg:flex">
+        <div className="shop-grid-toggle">
           {[
             { cols: 2, Icon: Grid2x2 },
             { cols: 3, Icon: Grid3x3 },
@@ -328,7 +328,7 @@ export default function ShopBrowser({ products }) {
               </button>
             </div>
           ) : (
-            <div className="shop-grid" style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}>
+            <div className="shop-grid" style={{ "--shop-cols": gridCols }}>
               {filtered.map((p) => (
                 <div
                   key={p.id}
