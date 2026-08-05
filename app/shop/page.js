@@ -18,8 +18,8 @@ export default function ShopPage() {
           Every unstitched piece, in one place.
         </h1>
         <p style={{ maxWidth: "54ch", fontSize: 16, opacity: 0.8 }}>
-          Filter by fabric, category or price to find the piece that suits
-          your tailor's next order.
+          Filter by fabric, category or price to find the piece that suits your
+          tailor's next order.
         </p>
       </div>
 

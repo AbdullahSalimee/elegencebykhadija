@@ -17,7 +17,10 @@ export default function ContactPage() {
     <div className="pg-contact">
       <Nav />
 
-      <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 680 }}>
+      <div
+        className="page-head"
+        style={{ padding: "56px 48px 20px", maxWidth: 680 }}
+      >
         <div className="tag tag-outline" style={{ marginBottom: 16 }}>
           Get in touch
         </div>

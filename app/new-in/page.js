@@ -37,20 +37,47 @@ export default function NewInPage() {
           <div>
             <div
               className="tag tag-outline"
-              style={{ marginBottom: 16, letterSpacing: ".08em", textTransform: "uppercase" }}
+              style={{
+                marginBottom: 16,
+                letterSpacing: ".08em",
+                textTransform: "uppercase",
+              }}
             >
               New Arrivals
             </div>
             <h1 style={{ fontSize: 52, maxWidth: "16ch", margin: 0 }}>
               Fresh off the loom.
             </h1>
-            <p style={{ maxWidth: "50ch", fontSize: 16, opacity: 0.75, margin: "14px 0 0" }}>
+            <p
+              style={{
+                maxWidth: "50ch",
+                fontSize: 16,
+                opacity: 0.75,
+                margin: "14px 0 0",
+              }}
+            >
               The newest pieces to land in the studio — newest first. Once a
               colourway sells out, it doesn't come back.
             </p>
           </div>
-          <div className="page-head-aside" style={{ textAlign: "right", fontSize: 13, opacity: 0.6, lineHeight: 1.6 }}>
-            <div style={{ fontSize: 30, fontFamily: "var(--font-heading)", fontWeight: 600, color: "var(--color-accent-700)", lineHeight: 1 }}>
+          <div
+            className="page-head-aside"
+            style={{
+              textAlign: "right",
+              fontSize: 13,
+              opacity: 0.6,
+              lineHeight: 1.6,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 30,
+                fontFamily: "var(--font-heading)",
+                fontWeight: 600,
+                color: "var(--color-accent-700)",
+                lineHeight: 1,
+              }}
+            >
               {sorted.length}
             </div>
             pieces this drop

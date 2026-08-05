@@ -102,7 +102,10 @@ export default function SalePage() {
       </div>
 
       <div style={{ background: "var(--color-neutral-900)", paddingBottom: 8 }}>
-        <div className="hr section-rule" style={{ margin: "0 48px", background: "rgba(239,233,223,.14)" }} />
+        <div
+          className="hr section-rule"
+          style={{ margin: "0 48px", background: "rgba(239,233,223,.14)" }}
+        />
       </div>
 
       {onSale.length === 0 ? (

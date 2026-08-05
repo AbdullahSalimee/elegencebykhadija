@@ -172,7 +172,7 @@ export default function ShopBrowser({ products }) {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 2, marginLeft: 12 }}>
+        <div style={{ display: "flex", gap: 2, marginLeft: 12 }} className="md:hidden lg:flex">
           {[
             { cols: 2, Icon: Grid2x2 },
             { cols: 3, Icon: Grid3x3 },
@@ -201,6 +201,7 @@ export default function ShopBrowser({ products }) {
             </button>
           ))}
         </div>
+
       </div>
 
       <div className="shop-layout">
