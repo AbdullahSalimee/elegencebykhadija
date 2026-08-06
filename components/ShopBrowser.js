@@ -3,7 +3,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { useProductsInfinite, useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useSiteConfig";
 import ProductCard from "@/components/ProductCard";
-import { SlidersHorizontal, X, ChevronDown, Grid2x2, Grid3x3, LayoutGrid } from "lucide-react";
+import { SlidersHorizontal, X, ChevronDown, Grid2x2, Grid3x3, LayoutGrid, Search } from "lucide-react";
 
 const FABRICS = ["Lawn", "Silk", "Karandi"];
 const PIECE_OPTIONS = ["2 Piece", "3 Piece"];
@@ -15,7 +15,7 @@ const SORTS = [
 ];
 const PRICE_MAX = 12000;
 
-export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 24 }) {
+export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 24, initialQuery = "" }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [fabrics, setFabrics] = useState([]);
@@ -28,6 +28,15 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
   const sortRef = useRef(null);
   const [gridCols, setGridCols] = useState(4);
 
+  // queryInput tracks every keystroke (instant, for the input itself);
+  // query is debounced off it so typing doesn't fire a request per letter.
+  const [queryInput, setQueryInput] = useState(initialQuery);
+  const [query, setQuery] = useState(initialQuery);
+  useEffect(() => {
+    const t = setTimeout(() => setQuery(queryInput), 300);
+    return () => clearTimeout(t);
+  }, [queryInput]);
+
   const filters = useMemo(
     () => ({
       category: categories,
@@ -36,14 +45,15 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
       maxPrice: maxPrice < PRICE_MAX ? maxPrice : undefined,
       onSale: onSaleOnly,
       inStock: inStockOnly,
+      q: query || undefined,
       sort,
     }),
-    [categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, sort]
+    [categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, query, sort]
   );
 
   // The very first render matches app/shop/page.js's server-fetched default
-  // query (no filters, page 1) — fallbackData lets that data paint instantly
-  // instead of re-fetching it on mount.
+  // query (no filters, page 1, same search term if any) — fallbackData lets
+  // that data paint instantly instead of re-fetching it on mount.
   const isDefaultFilters =
     categories.length === 0 &&
     fabrics.length === 0 &&
@@ -51,6 +61,7 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
     maxPrice === PRICE_MAX &&
     !onSaleOnly &&
     !inStockOnly &&
+    query === initialQuery &&
     sort === "newest";
 
   const { products, total, hasMore, isLoading, loadMore, reset } = useProductsInfinite(
@@ -64,7 +75,13 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
   // shared via SWR's cache like everything else that wants "all products".
   const { products: allProducts } = useProducts({ pageSize: 500 });
 
-  useEffect(() => reset(), [categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    // `reset` (setSize(1) under the hood) returns a Promise — a concise-body
+    // arrow here would implicitly return that Promise as the effect's
+    // "cleanup function", which React then tries to call and throws
+    // "destroy is not a function". The block body discards the return value.
+    reset();
+  }, [categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, query, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -84,6 +101,7 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
     setMaxPrice(PRICE_MAX);
     setOnSaleOnly(false);
     setInStockOnly(false);
+    setQueryInput("");
   };
 
   const activeFilterCount =
@@ -108,7 +126,26 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
           )}
         </button>
 
-        <div style={{ fontSize: 13, opacity: 0.65 }}>
+        <div className="admin-search" style={{ minWidth: 0, flex: "0 1 260px" }}>
+          <Search size={14} strokeWidth={1.8} style={{ opacity: 0.6, flexShrink: 0 }} />
+          <input
+            placeholder="Search suits, fabric…"
+            value={queryInput}
+            onChange={(e) => setQueryInput(e.target.value)}
+          />
+          {queryInput && (
+            <button
+              className="btn-ghost"
+              style={{ padding: 0, lineHeight: 1, flexShrink: 0 }}
+              onClick={() => setQueryInput("")}
+              aria-label="Clear search"
+            >
+              <X size={13} strokeWidth={2} />
+            </button>
+          )}
+        </div>
+
+        <div style={{ fontSize: 13, opacity: 0.65, whiteSpace: "nowrap" }}>
           {products.length} of {total} pieces
         </div>
 

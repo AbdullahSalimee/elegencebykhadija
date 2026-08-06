@@ -17,14 +17,15 @@ export async function GET(_request, { params }) {
   }
 }
 
-// PATCH body: { price?, category?, variantStock?: { variantId, stock } }
-// Covers all three admin edit affordances (price, category, per-colour stock).
+// PATCH body: { price?, category?, image?, variantStock?: { variantId, stock } }
+// Covers all admin edit affordances (price, category, photo, per-colour stock).
 export async function PATCH(request, { params }) {
   const body = await request.json();
   try {
     const fields = {};
     if (body.price !== undefined) fields.price = body.price;
     if (body.category !== undefined) fields.category = body.category;
+    if (body.image !== undefined) fields.image_url = body.image;
     if (Object.keys(fields).length) await updateProductFields(params.id, fields);
     if (body.variantStock) {
       await updateVariantStock(body.variantStock.variantId, body.variantStock.stock);

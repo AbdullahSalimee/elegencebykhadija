@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useNavLinks } from "@/hooks/useSiteConfig";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
@@ -7,7 +8,14 @@ import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 export default function Nav() {
   const { cartCount, openCart } = useCart();
   const { navLinks } = useNavLinks();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchRef = useRef(null);
+  const accountRef = useRef(null);
+  const searchInputRef = useRef(null);
   const links = [...navLinks].sort((a, b) => a.order - b.order);
 
   // Lock the page behind the drawer, and close on Escape.
@@ -22,6 +30,46 @@ export default function Nav() {
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
+
+  // Close the search/account flyouts on outside click or Escape.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const toggleSearch = () => {
+    setAccountOpen(false);
+    setSearchOpen((v) => !v);
+  };
+  const toggleAccount = () => {
+    setSearchOpen(false);
+    setAccountOpen((v) => !v);
+  };
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    if (!searchValue.trim()) return;
+    router.push(`/shop?q=${encodeURIComponent(searchValue.trim())}`);
+    setSearchOpen(false);
+  };
 
   return (
     <>
@@ -49,13 +97,63 @@ export default function Nav() {
         </div>
 
         <div className="nav-actions">
-          <button className="btn btn-icon" aria-label="Search">
-            <Search size={18} strokeWidth={1.8} />
-          </button>
-          <button className="btn btn-icon" aria-label="Account">
-            <User size={18} strokeWidth={1.8} />
-          </button>
-          <button className="btn btn-icon" aria-label="Cart" onClick={openCart}>
+          <div className="nav-action-item" ref={searchRef}>
+            <button
+              className="btn btn-icon icon-tooltip"
+              data-tooltip="Search"
+              aria-label="Search"
+              aria-expanded={searchOpen}
+              onClick={toggleSearch}
+            >
+              <Search size={18} strokeWidth={1.8} />
+            </button>
+            {searchOpen && (
+              <div className="nav-flyout nav-search-flyout">
+                <form onSubmit={submitSearch}>
+                  <input
+                    ref={searchInputRef}
+                    className="input"
+                    style={{ flex: 1 }}
+                    placeholder="Search suits, fabric…"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                  />
+                  <button className="btn btn-icon" type="submit" aria-label="Submit search">
+                    <Search size={15} strokeWidth={2} />
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+
+          <div className="nav-action-item" ref={accountRef}>
+            <button
+              className="btn btn-icon icon-tooltip"
+              data-tooltip="Account"
+              aria-label="Account"
+              aria-expanded={accountOpen}
+              onClick={toggleAccount}
+            >
+              <User size={18} strokeWidth={1.8} />
+            </button>
+            {accountOpen && (
+              <div className="nav-flyout nav-account-flyout">
+                <a href="/track" onClick={() => setAccountOpen(false)}>
+                  Track your order
+                </a>
+                <a href="/contact" onClick={() => setAccountOpen(false)}>
+                  Contact us
+                </a>
+              </div>
+            )}
+          </div>
+
+          <button
+            className="btn btn-icon icon-tooltip"
+            data-tooltip="Cart"
+            aria-label="Cart"
+            onClick={openCart}
+          >
             <ShoppingBag size={18} strokeWidth={1.8} />
             {cartCount > 0 && <span className="nav-cart-badge">{cartCount}</span>}
           </button>

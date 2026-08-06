@@ -4,7 +4,7 @@ import { useCart } from '@/lib/cart-context';
 
 export default function CheckoutModal() {
   const { checkoutOpen, closeCheckout, cartSubtotal, payMethod, setPayMethod, placeOrder, placing, orderPlaced, orderNumber } = useCart();
-  const [contact, setContact] = useState({ name: '', phone: '', address: '' });
+  const [contact, setContact] = useState({ name: '', phone: '', email: '', address: '' });
   if (!checkoutOpen) return null;
 
   return (
@@ -13,8 +13,16 @@ export default function CheckoutModal() {
         <div className="dialog modal-shell" style={{ width: 'min(480px,92vw)' }}>
           {orderPlaced ? (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
-              <div className="dialog-title" style={{ marginBottom: 8 }}>Order Received</div>
-              <div className="dialog-body">Order #EK-{orderNumber} — we'll call to confirm before dispatch. Thank you for shopping with Elegance by Khadija.</div>
+              <div className="dialog-title" style={{ marginBottom: 8 }}>
+                Thank you{contact.name ? `, ${contact.name}` : ''}!
+              </div>
+              <div className="dialog-body">
+                Order #{orderNumber} received — we'll call to confirm before dispatch.
+                {contact.email && ' A confirmation has been sent to your email.'}
+              </div>
+              <a href="/track" className="btn btn-secondary" style={{ marginTop: 16, marginRight: 8 }}>
+                Track your order
+              </a>
               <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={closeCheckout}>Done</button>
             </div>
           ) : (
@@ -22,6 +30,7 @@ export default function CheckoutModal() {
               <div className="dialog-title">Checkout</div>
               <div className="field"><label>Full name</label><input className="input" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} placeholder="Khadija Fatima" /></div>
               <div className="field"><label>Phone number</label><input className="input" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} placeholder="03XX XXXXXXX" /></div>
+              <div className="field"><label>Email (optional — for order updates)</label><input className="input" type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} placeholder="you@example.com" /></div>
               <div className="field"><label>Delivery address</label><textarea className="input" value={contact.address} onChange={(e) => setContact({ ...contact, address: e.target.value })} placeholder="House / street, city, postal code" /></div>
               <div className="hr" />
               <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.05em', opacity: .7, marginBottom: 6 }}>Payment method</div>

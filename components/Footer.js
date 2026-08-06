@@ -14,7 +14,7 @@ export default function Footer() {
         <div>
           <h6 style={{ marginBottom: 10 }}>Customer Care</h6>
           <div className="footer-col-links">
-            <a href="#">FAQs</a><a href="#">Shipping &amp; Returns</a><a href="#">Track your Order</a><a href="#">Size Guide</a>
+            <a href="#">FAQs</a><a href="#">Shipping &amp; Returns</a><a href="/track">Track your Order</a><a href="#">Size Guide</a>
           </div>
         </div>
         <div>

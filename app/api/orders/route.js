@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import { getOrders, placeOrder } from '@/lib/data/orders';
+import { getOrders, placeOrder, getOrderById } from '@/lib/data/orders';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 // GET — admin order list (app/admin/orders/page.js via useOrders())
 export async function GET() {
@@ -31,6 +32,12 @@ export async function POST(request) {
     });
     revalidateTag('orders');
     revalidateTag('products'); // stock just changed
+
+    // Best-effort — a customer with no email or an unconfigured email
+    // provider must never block the order response.
+    const order = await getOrderById(result.orderNumber).catch(() => null);
+    if (order) await sendOrderConfirmationEmail(order);
+
     return NextResponse.json(result);
   } catch (err) {
     if (err.code === 'out_of_stock') {

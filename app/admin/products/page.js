@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useProducts, apiCreateProduct, apiPatchProduct, apiDeleteProduct } from "@/hooks/useProducts";
+import {
+  useProducts,
+  apiCreateProduct,
+  apiPatchProduct,
+  apiDeleteProduct,
+  apiUploadProductImage,
+} from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useSiteConfig";
 import { Search, Plus, X, Trash2, ImagePlus } from "lucide-react";
 
@@ -24,8 +30,10 @@ const BLANK_PRODUCT = () => ({
 
 // Local state is seeded from the DB once (see the hydration effect below)
 // so every keystroke stays instant; each handler also persists via the
-// /api/products endpoints. Photo upload stays local-only (data URL preview,
-// not persisted) — there's no image storage wired up yet.
+// /api/products endpoints. Photos upload to Supabase Storage
+// (app/api/uploads/product-image, resized + converted to WebP by sharp) —
+// the preview swaps from a local object URL to the real CDN URL once that
+// finishes.
 export default function AdminProducts() {
   const { products: dbProducts, isLoading: productsLoading, mutate: mutateProducts } = useProducts({
     pageSize: 500,
@@ -72,14 +80,14 @@ export default function AdminProducts() {
 
   const replaceProductImage = (productId, file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id !== productId ? p : { ...p, image: reader.result },
-        ),
-      );
-    reader.readAsDataURL(file);
+    // Instant local preview (no network wait) while the real upload — which
+    // resizes + converts to WebP server-side — happens in the background.
+    const previewUrl = URL.createObjectURL(file);
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, image: previewUrl })));
+    apiUploadProductImage(file).then(({ url }) => {
+      setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, image: url })));
+      apiPatchProduct(productId, { image: url }).then(() => mutateProducts());
+    });
   };
 
   const openAddModal = () => {
@@ -106,17 +114,25 @@ export default function AdminProducts() {
       ),
     }));
 
+  const [draftImageUploading, setDraftImageUploading] = useState(false);
   const setDraftImage = (file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setDraft((d) => ({ ...d, image: reader.result }));
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setDraft((d) => ({ ...d, image: previewUrl }));
+    setDraftImageUploading(true);
+    apiUploadProductImage(file)
+      .then(({ url }) => setDraft((d) => ({ ...d, image: url })))
+      .finally(() => setDraftImageUploading(false));
   };
   const clearDraftImage = () => setDraft((d) => ({ ...d, image: null }));
 
   const saveDraft = () => {
-    if (!draft.name.trim()) return;
-    const toSave = { ...draft, price: Number(draft.price) || 0 };
+    if (!draft.name.trim() || draftImageUploading) return;
+    // Guard against saving a browser-local blob: URL if this ever runs
+    // before an in-flight upload resolves — the disabled-button check above
+    // should already prevent it, this is just a second line of defense.
+    const image = draft.image?.startsWith("blob:") ? null : draft.image;
+    const toSave = { ...draft, image, price: Number(draft.price) || 0 };
     setProducts((prev) => [toSave, ...prev]);
     setShowAddModal(false);
     apiCreateProduct(toSave).then(() => mutateProducts());
@@ -565,9 +581,9 @@ export default function AdminProducts() {
                 <button
                   className="btn btn-primary"
                   onClick={saveDraft}
-                  disabled={!draft.name.trim()}
+                  disabled={!draft.name.trim() || draftImageUploading}
                 >
-                  Add Product
+                  {draftImageUploading ? "Uploading photo…" : "Add Product"}
                 </button>
               </div>
             </div>

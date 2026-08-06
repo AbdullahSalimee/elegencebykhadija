@@ -8,8 +8,9 @@ export const revalidate = 300;
 
 const PAGE_SIZE = 24;
 
-export default async function ShopPage() {
-  const { products, total } = await getProducts({ sort: "newest", page: 1, pageSize: PAGE_SIZE });
+export default async function ShopPage({ searchParams }) {
+  const q = searchParams?.q || "";
+  const { products, total } = await getProducts({ sort: "newest", page: 1, pageSize: PAGE_SIZE, q });
 
   return (
     <div className="pg-shop">
@@ -28,7 +29,7 @@ export default async function ShopPage() {
         </p>
       </div>
 
-      <ShopBrowser initialProducts={products} initialTotal={total} pageSize={PAGE_SIZE} />
+      <ShopBrowser initialProducts={products} initialTotal={total} pageSize={PAGE_SIZE} initialQuery={q} />
 
       <Footer />
     </div>

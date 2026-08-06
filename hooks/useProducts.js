@@ -1,7 +1,7 @@
 'use client';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
-import { fetcher, sendJSON } from '@/lib/swr-fetcher';
+import { fetcher, sendJSON, sendFormData } from '@/lib/swr-fetcher';
 
 function buildQuery(filters = {}) {
   const params = new URLSearchParams();
@@ -11,6 +11,7 @@ function buildQuery(filters = {}) {
   if (filters.maxPrice) params.set('maxPrice', String(filters.maxPrice));
   if (filters.onSale) params.set('onSale', '1');
   if (filters.inStock) params.set('inStock', '1');
+  if (filters.q) params.set('q', filters.q);
   if (filters.sort) params.set('sort', filters.sort);
   if (filters.page) params.set('page', String(filters.page));
   if (filters.pageSize) params.set('pageSize', String(filters.pageSize));
@@ -82,3 +83,4 @@ export function useProductsInfinite(filters, pageSize, swrOptions) {
 export const apiCreateProduct = (body) => sendJSON('/api/products', 'POST', body);
 export const apiPatchProduct = (id, body) => sendJSON(`/api/products/${id}`, 'PATCH', body);
 export const apiDeleteProduct = (id) => sendJSON(`/api/products/${id}`, 'DELETE');
+export const apiUploadProductImage = (file) => sendFormData('/api/uploads/product-image', file);

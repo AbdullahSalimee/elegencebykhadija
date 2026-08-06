@@ -67,6 +67,7 @@ create table orders (
   created_at    timestamptz not null default now(),
   customer_name text not null,
   phone         text not null,
+  customer_email text,
   address       text,
   channel       text not null default 'website' check (channel in ('website', 'whatsapp')),
   pay_method    text not null check (pay_method in ('cod', 'whatsapp', 'jazzcash', 'easypaisa')),
@@ -143,10 +144,11 @@ begin
   end loop;
 
   -- Pass 2: everything is locked and confirmed in stock — decrement + write.
-  insert into orders (customer_name, phone, address, channel, pay_method, status)
+  insert into orders (customer_name, phone, customer_email, address, channel, pay_method, status)
   values (
     payload->'contact'->>'name',
     payload->'contact'->>'phone',
+    nullif(payload->'contact'->>'email', ''),
     payload->'contact'->>'address',
     v_channel,
     payload->>'payMethod',

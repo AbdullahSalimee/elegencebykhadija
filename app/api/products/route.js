@@ -23,6 +23,7 @@ export async function GET(request) {
     maxPrice: maxPriceRaw ? Number(maxPriceRaw) : undefined,
     onSale: searchParams.get('onSale') === '1',
     inStock: searchParams.get('inStock') === '1',
+    q: searchParams.get('q') || undefined,
     sort: searchParams.get('sort') || 'newest',
     page: Number(searchParams.get('page') || 1),
     pageSize: Number(searchParams.get('pageSize') || 24),

@@ -2,6 +2,7 @@ import { Cormorant_Garamond, Lora } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import ModalHost from "@/components/ModalHost";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
       <body>
         <CartProvider>
           {children}
+          <WhatsAppFloat />
           <ModalHost />
         </CartProvider>
       </body>
