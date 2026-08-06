@@ -1,4 +1,4 @@
-import { TRUST_ITEMS } from '@/lib/products';
+import { TRUST_ITEMS } from '@/lib/site-config';
 
 export default function TrustStrip() {
   return (

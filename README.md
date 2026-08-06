@@ -1,54 +1,66 @@
 # Elegance by Khadija — Next.js storefront
 
-A working Next.js (App Router) build of the storefront UI: home, product quick-view, cart drawer,
-and checkout with Cash on Delivery / WhatsApp / JazzCash-Easypaisa (disabled placeholder). Built so
-wiring up a real backend is additive, not a rewrite.
+A Next.js (App Router) storefront backed by Supabase: home, product quick-view, cart drawer,
+checkout with Cash on Delivery / WhatsApp / JazzCash-Easypaisa (disabled placeholder), and an
+admin console for stock, orders, and nav/category settings.
 
-## Run it
+## Set up Supabase (required — the app won't build or run without this)
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In the SQL Editor, run `supabase/migrations/0001_init.sql`, then `supabase/seed.sql`
+   (seeds the same 6 products / 5 orders the app used to ship as mock data).
+3. In Project Settings → API, copy the **Project URL** and the **service_role** key.
+4. `cp .env.example .env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and
+   `SUPABASE_SERVICE_ROLE_KEY`.
 
 ```
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
 ## Where things live
 
-- `lib/products.js` — mock product + variant data. Replace `PRODUCTS` with a real fetch
-  (`getProducts()`) once you have a database; keep the same shape (`id, name, fabric, pieces,
-  price, compareAt, colors[]`) and every component keeps working unchanged.
-- `lib/cart-context.js` — all cart/modal state (`useCart()` hook), persisted to `localStorage`.
-  `addToCart` and `placeOrder` are the two functions that will eventually talk to your API —
-  they're already isolated here.
-- `app/api/orders/route.js` — the order-intake endpoint. Currently returns a fake order number.
-  The comments inside describe the real implementation: a DB transaction that checks and
-  decrements variant stock, inserts the order as `pending`, and moves through
-  `pending → confirmed → dispatched → delivered → returned`.
-- `components/` — one file per UI piece (Nav, Hero, ProductGrid, ProductModal, CartDrawer,
-  CheckoutModal, Footer). Plain React, no UI library — easy to hand to any developer.
-- `app/globals.css` — all design tokens (colors, type, spacing) as CSS variables, ported from the
-  Classical direction. Change a token here to reskin the whole app.
+- `supabase/migrations/0001_init.sql` — schema: `products` / `product_variants` (stock lives on
+  the variant, never the product — two customers can't oversell the same colourway) /
+  `categories` / `nav_links` / `orders` / `order_lines`, plus `place_order()`, a Postgres function
+  that atomically locks stock, decrements it, and inserts an order in one transaction.
+- `lib/supabase/server.js` — the one server-only Supabase client (service role key — never sent
+  to the browser; guarded with the `server-only` package so an accidental client import fails
+  the build instead of leaking the key).
+- `lib/data/*.js` — server-only data access (`getProducts`, `getOrders`, `placeOrder`, …), wrapped
+  in `unstable_cache` with tag-based revalidation. **Server Components import these directly** —
+  no network hop.
+- `app/api/*` — REST endpoints backing the client-side hooks below. Client Components never talk
+  to Supabase directly; they go through these routes so query shaping/validation lives in one
+  place.
+- `hooks/*.js` — SWR-based hooks (`useProducts`, `useProductsInfinite`, `useOrders`,
+  `useCategories`, `useNavLinks`) for anything that needs data in a Client Component (filters,
+  cart, admin). SWR dedupes and caches by key, so multiple components asking for the same data in
+  the same render share one request.
+- `lib/cart-context.js` — cart/modal state (`useCart()`), persisted to `localStorage`.
+  `getProductById` now reads from the shared product cache (`useProducts`) instead of a static
+  array; `placeOrder` posts to `/api/orders`, which really checks and decrements stock now.
+- `components/ProductCard.js` — the one interactive piece (click-to-open + photo) shared by every
+  product grid; everything else in those grids is a plain Server Component.
+- `components/` — one file per UI piece. Plain React, no UI library.
+- `app/globals.css` — design tokens (colors, spacing) as CSS variables; fonts are loaded via
+  `next/font` in `app/layout.js` and exposed as `--font-cormorant` / `--font-lora`.
 
-## Wiring up a real backend (recommended order)
+## Images
 
-1. **Schema first.** Model `product` (shell) and `variant` (the sellable thing — size/color/
-   stitched-vs-unstitched, its own price and stock) as separate tables. Don't put stock on the
-   product.
-2. **Stock locking.** Decrement stock inside the same transaction that creates the order, not at
-   checkout-button-click time. Reserve stock for ~10–15 min if you add a real payment step.
-3. **WhatsApp + in-store orders still need a row.** Any order Khadija enters manually (from a
-   WhatsApp chat) should still land in the same `orders` table so stock stays accurate across
-   channels.
-4. **Payments are optional at launch.** COD + WhatsApp need no gateway. Add JazzCash/Easypaisa once
-   the merchant account is approved — both are hosted-checkout redirects + a server-side signature
-   + a webhook that flips `pending → paid` (see comments in `app/api/orders/route.js`). Never trust
-   the browser redirect alone; always verify server-side.
-5. **Images.** Each variant (not just each product) needs its own photos. Swap the `.ph` placeholder
-   divs for `next/image` once real photography exists, and put it behind a CDN/image-optimization
-   service — this matters more than most product categories since buyers are judging fabric and
-   color from the photo alone.
+`products.image_url` is ready for real photography, served through `next/image` (AVIF/WebP,
+lazy-loaded) the moment it's set — until then, product cards fall back to the placeholder tiles
+you see today. There's no Supabase Storage/Cloudinary wiring yet; add that when there's real
+photography to upload, and point `image_url` at the resulting URL (see `next.config.js` for the
+`*.supabase.co` Storage domain already allow-listed for `next/image`).
 
-## Not included (intentionally)
+## Known gaps
 
-No database, ORM, auth, or payment SDK is wired in — those are business decisions (which DB, which
-hosting) better made by whoever inherits this. The UI and the seams to plug into are what's here.
+- **No auth.** Admin routes (`/admin/*` and their `/api/*` mutation endpoints) are not
+  authenticated — same as before, not a regression introduced here, but worth fixing before this
+  goes live with real customer/order data.
+- **Payments.** COD + WhatsApp need no gateway. Add JazzCash/Easypaisa once the merchant account
+  is approved — both are hosted-checkout redirects + a server-side signature + a webhook that
+  flips `pending → paid`. Never trust the browser redirect alone; always verify server-side.
+- **Admin photo upload** is still a client-only preview (`FileReader` → data URL), not persisted —
+  there's no image storage backend to upload to yet.

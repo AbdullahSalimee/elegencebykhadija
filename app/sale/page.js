@@ -1,12 +1,14 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import SaleGrid from "@/components/SaleGrid";
-import { PRODUCTS } from "@/lib/products";
+import { getProducts } from "@/lib/data/products";
 
 export const metadata = { title: "Sale — Elegance by Khadija" };
+export const revalidate = 300;
 
-export default function SalePage() {
-  const onSale = PRODUCTS.filter((p) => p.compareAt && p.compareAt > p.price)
+export default async function SalePage() {
+  const { products } = await getProducts({ onSale: true, pageSize: 60 });
+  const onSale = products
     .map((p) => ({
       ...p,
       pct: Math.round(((p.compareAt - p.price) / p.compareAt) * 100),

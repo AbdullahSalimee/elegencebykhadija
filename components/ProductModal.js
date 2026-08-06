@@ -1,6 +1,6 @@
 "use client";
+import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
-import { getProductById } from "@/lib/products";
 import { X, Minus, Plus } from "lucide-react";
 
 export default function ProductModal() {
@@ -12,6 +12,7 @@ export default function ProductModal() {
     activeQty,
     setActiveQty,
     addToCart,
+    getProductById,
   } = useCart();
   if (!activeProductId) return null;
   const p = getProductById(activeProductId);
@@ -31,8 +32,18 @@ export default function ProductModal() {
           style={{ width: "100%", padding: 0, overflow: "hidden" }}
         >
           <div className="modal-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            <div className="plate ph" style={{ minHeight: 380 }}>
-              <span>{p.name} — full product photo</span>
+            <div className="plate ph" style={{ minHeight: 380, position: "relative" }}>
+              {p.image ? (
+                <Image
+                  src={p.image}
+                  alt={p.name}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 450px"
+                  style={{ objectFit: "cover" }}
+                />
+              ) : (
+                <span>{p.name} — full product photo</span>
+              )}
             </div>
             <div
               style={{

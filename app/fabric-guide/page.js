@@ -1,10 +1,13 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { FABRIC_GUIDE, PRODUCTS } from "@/lib/products";
+import { FABRIC_GUIDE } from "@/lib/site-config";
+import { getProducts } from "@/lib/data/products";
 
 export const metadata = { title: "Fabric Guide — Elegance by Khadija" };
+export const revalidate = 300;
 
-export default function FabricGuidePage() {
+export default async function FabricGuidePage() {
+  const { products } = await getProducts({ pageSize: 200 });
   return (
     <div className="pg-fabric">
       <Nav />
@@ -34,7 +37,7 @@ export default function FabricGuidePage() {
         }}
       >
         {FABRIC_GUIDE.map((f, i) => {
-          const count = PRODUCTS.filter((p) => p.fabric === f.name).length;
+          const count = products.filter((p) => p.fabric === f.name).length;
           const reversed = i % 2 === 1;
           return (
             <div

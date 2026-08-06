@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart-context";
-import { NAV_LINKS } from "@/lib/site-config";
+import { useNavLinks } from "@/hooks/useSiteConfig";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 
 export default function Nav() {
   const { cartCount, openCart } = useCart();
+  const { navLinks } = useNavLinks();
   const [menuOpen, setMenuOpen] = useState(false);
-  const links = [...NAV_LINKS].sort((a, b) => a.order - b.order);
+  const links = [...navLinks].sort((a, b) => a.order - b.order);
 
   // Lock the page behind the drawer, and close on Escape.
   useEffect(() => {

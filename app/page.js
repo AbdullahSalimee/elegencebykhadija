@@ -4,6 +4,8 @@ import TrustStrip from "@/components/TrustStrip";
 import ProductGrid from "@/components/ProductGrid";
 import Footer from "@/components/Footer";
 
+export const revalidate = 300;
+
 export default function HomePage() {
   return (
     <div className="pg-home">

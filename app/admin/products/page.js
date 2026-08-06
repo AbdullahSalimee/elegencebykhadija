@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
-import { PRODUCTS as SEED } from "@/lib/products";
-import { CATEGORIES } from "@/lib/site-config";
+import { useEffect, useRef, useState } from "react";
+import { useProducts, apiCreateProduct, apiPatchProduct, apiDeleteProduct } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useSiteConfig";
 import { Search, Plus, X, Trash2, ImagePlus } from "lucide-react";
 
 const BLANK_COLOR = () => ({
@@ -22,55 +22,52 @@ const BLANK_PRODUCT = () => ({
   colors: [BLANK_COLOR()],
 });
 
-// Client-side only (no persistence) — wire onSave to POST /api/products once the backend
-// exists. The image field should become a real upload (S3/Cloudinary/etc.) that returns a
-// URL to store on the product row, rather than the data URL used here for the session-only demo.
+// Local state is seeded from the DB once (see the hydration effect below)
+// so every keystroke stays instant; each handler also persists via the
+// /api/products endpoints. Photo upload stays local-only (data URL preview,
+// not persisted) — there's no image storage wired up yet.
 export default function AdminProducts() {
-  const [products, setProducts] = useState(
-    SEED.map((p) => ({
-      ...p,
-      category: p.category || "lawn",
-      image: p.image || null,
-    })),
-  );
+  const { products: dbProducts, isLoading: productsLoading, mutate: mutateProducts } = useProducts({
+    pageSize: 500,
+  });
+  const { categories } = useCategories();
+  const [products, setProducts] = useState([]);
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (!productsLoading && !hydrated.current) {
+      setProducts(dbProducts.map((p) => ({ ...p, category: p.category || "lawn", image: p.image || null })));
+      hydrated.current = true;
+    }
+  }, [productsLoading, dbProducts]);
+
   const [query, setQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [draft, setDraft] = useState(BLANK_PRODUCT());
 
   const updateStock = (productId, colorId, value) => {
+    const stock = Math.max(0, Number(value) || 0);
     setProducts((prev) =>
       prev.map((p) =>
         p.id !== productId
           ? p
-          : {
-              ...p,
-              colors: p.colors.map((c) =>
-                c.id !== colorId
-                  ? c
-                  : { ...c, stock: Math.max(0, Number(value) || 0) },
-              ),
-            },
+          : { ...p, colors: p.colors.map((c) => (c.id !== colorId ? c : { ...c, stock })) },
       ),
     );
+    apiPatchProduct(productId, { variantStock: { variantId: colorId, stock } }).then(() => mutateProducts());
   };
   const updatePrice = (productId, value) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id !== productId
-          ? p
-          : { ...p, price: Math.max(0, Number(value) || 0) },
-      ),
-    );
+    const price = Math.max(0, Number(value) || 0);
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, price })));
+    apiPatchProduct(productId, { price }).then(() => mutateProducts());
   };
   const updateCategory = (productId, category) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id !== productId ? p : { ...p, category })),
-    );
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, category })));
+    apiPatchProduct(productId, { category }).then(() => mutateProducts());
   };
   const removeProduct = (productId) => {
-    if (!confirm("Remove this product? This only affects this session."))
-      return;
+    if (!confirm("Remove this product? This can't be undone.")) return;
     setProducts((prev) => prev.filter((p) => p.id !== productId));
+    apiDeleteProduct(productId).then(() => mutateProducts());
   };
 
   const replaceProductImage = (productId, file) => {
@@ -119,13 +116,10 @@ export default function AdminProducts() {
 
   const saveDraft = () => {
     if (!draft.name.trim()) return;
-    // TODO real backend: POST /api/products (multipart or presigned upload for the image),
-    // insert product + variant rows, store the returned image URL on the product row.
-    setProducts((prev) => [
-      { ...draft, price: Number(draft.price) || 0 },
-      ...prev,
-    ]);
+    const toSave = { ...draft, price: Number(draft.price) || 0 };
+    setProducts((prev) => [toSave, ...prev]);
     setShowAddModal(false);
+    apiCreateProduct(toSave).then(() => mutateProducts());
   };
 
   const visible = products.filter(
@@ -241,7 +235,7 @@ export default function AdminProducts() {
                       value={p.category}
                       onChange={(e) => updateCategory(p.id, e.target.value)}
                     >
-                      {CATEGORIES.map((c) => (
+                      {categories.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.label}
                         </option>
@@ -468,7 +462,7 @@ export default function AdminProducts() {
                       setDraft({ ...draft, category: e.target.value })
                     }
                   >
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
                       </option>

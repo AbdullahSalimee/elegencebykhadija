@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
 import { X, Minus, Plus } from "lucide-react";
 
@@ -72,8 +73,12 @@ export default function CartDrawer() {
                       alignItems: "center",
                     }}
                   >
-                    <div className="plate ph" style={{ width: 64, height: 64 }}>
-                      <span style={{ fontSize: 8 }}>{line.product?.name}</span>
+                    <div className="plate ph" style={{ width: 64, height: 64, position: "relative" }}>
+                      {line.product?.image ? (
+                        <Image src={line.product.image} alt={line.product.name} fill sizes="64px" style={{ objectFit: "cover" }} />
+                      ) : (
+                        <span style={{ fontSize: 8 }}>{line.product?.name}</span>
+                      )}
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>

@@ -1,9 +1,10 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import NewInGrid from "@/components/NewInGrid";
-import { PRODUCTS } from "@/lib/products";
+import { getProducts } from "@/lib/data/products";
 
 export const metadata = { title: "New In — Elegance by Khadija" };
+export const revalidate = 300;
 
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00");
@@ -14,10 +15,8 @@ function formatDate(iso) {
   });
 }
 
-export default function NewInPage() {
-  const sorted = [...PRODUCTS].sort((a, b) =>
-    b.arrivedAt.localeCompare(a.arrivedAt),
-  );
+export default async function NewInPage() {
+  const { products } = await getProducts({ sort: "newest", pageSize: 60 });
 
   return (
     <div className="pg-new">
@@ -78,16 +77,16 @@ export default function NewInPage() {
                 lineHeight: 1,
               }}
             >
-              {sorted.length}
+              {products.length}
             </div>
             pieces this drop
             <br />
-            as of {formatDate(sorted[0]?.arrivedAt)}
+            {products[0] && <>as of {formatDate(products[0].arrivedAt)}</>}
           </div>
         </div>
       </div>
 
-      <NewInGrid products={sorted} />
+      <NewInGrid products={products} />
 
       <Footer />
     </div>
