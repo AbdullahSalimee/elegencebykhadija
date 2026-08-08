@@ -1,6 +1,7 @@
 "use client";
 import { useCart } from "@/lib/cart-context";
 import { getProductById } from "@/lib/products";
+import ProductPhoto from "@/components/ProductPhoto";
 import { X, Minus, Plus } from "lucide-react";
 
 export default function ProductModal() {
@@ -31,9 +32,11 @@ export default function ProductModal() {
           style={{ width: "100%", padding: 0, overflow: "hidden" }}
         >
           <div className="modal-split" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            <div className="plate ph" style={{ minHeight: 380 }}>
-              <span>{p.name} — full product photo</span>
-            </div>
+            <ProductPhoto
+              product={p}
+              style={{ minHeight: 380 }}
+              label={`${p.name} — full product photo`}
+            />
             <div
               style={{
                 padding: 28,

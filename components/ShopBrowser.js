@@ -2,6 +2,7 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
 import { CATEGORIES } from "@/lib/site-config";
+import ProductPhoto from "@/components/ProductPhoto";
 import { SlidersHorizontal, X, ChevronDown, Grid2x2, Grid3x3, LayoutGrid } from "lucide-react";
 
 const FABRICS = ["Lawn", "Silk", "Karandi"];
@@ -336,8 +337,7 @@ export default function ShopBrowser({ products }) {
                   style={{ cursor: "pointer", padding: 0, border: "none" }}
                   onClick={() => openProduct(p.id)}
                 >
-                  <div className="plate ph" style={{ height: 420, position: "relative" }}>
-                    <span>{p.name} — product photo</span>
+                  <ProductPhoto product={p} style={{ height: 420, position: "relative" }}>
                     {p.compareAt && p.compareAt > p.price && (
                       <span
                         className="tag"
@@ -360,7 +360,7 @@ export default function ShopBrowser({ products }) {
                         Out of stock
                       </span>
                     )}
-                  </div>
+                  </ProductPhoto>
                   <div style={{ padding: "10px 2px" }}>
                     <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
                       {p.colors.map((c) => (

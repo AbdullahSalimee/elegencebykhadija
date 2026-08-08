@@ -1,13 +1,12 @@
 "use client";
 import { useCart } from "@/lib/cart-context";
+import ProductPhoto from "@/components/ProductPhoto";
 
 export default function ProductRow({ product: p }) {
   const { openProduct } = useCart();
   return (
     <div className="product-row" onClick={() => openProduct(p.id)}>
-      <div className="plate ph product-row-photo">
-        <span>{p.name} — product photo</span>
-      </div>
+      <ProductPhoto product={p} className="product-row-photo" />
       <div className="product-row-body">
         <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
           {p.colors.map((c) => (

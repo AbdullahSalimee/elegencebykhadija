@@ -1,5 +1,6 @@
 "use client";
 import { useCart } from "@/lib/cart-context";
+import ProductPhoto from "@/components/ProductPhoto";
 import { X, Minus, Plus } from "lucide-react";
 
 export default function CartDrawer() {
@@ -72,9 +73,11 @@ export default function CartDrawer() {
                       alignItems: "center",
                     }}
                   >
-                    <div className="plate ph" style={{ width: 64, height: 64 }}>
-                      <span style={{ fontSize: 8 }}>{line.product?.name}</span>
-                    </div>
+                    <ProductPhoto
+                      product={line.product}
+                      style={{ width: 64, height: 64 }}
+                      label={line.product?.name}
+                    />
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>
                         {line.product?.name}

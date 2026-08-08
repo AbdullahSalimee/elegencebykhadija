@@ -1,6 +1,7 @@
 'use client';
 import { PRODUCTS } from '@/lib/products';
 import { useCart } from '@/lib/cart-context';
+import ProductPhoto from '@/components/ProductPhoto';
 
 export default function ProductGrid() {
   const { openProduct } = useCart();
@@ -13,7 +14,7 @@ export default function ProductGrid() {
       <div className="product-grid">
         {PRODUCTS.slice(0, 6).map((p) => (
           <div key={p.id} className="card" style={{ cursor: 'pointer', padding: 0, border: 'none' }} onClick={() => openProduct(p.id)}>
-            <div className="plate ph product-photo"><span>{p.name} — product photo</span></div>
+            <ProductPhoto product={p} className="product-photo" />
             <div style={{ padding: '6px 2px' }}>
               <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                 {p.colors.map((c) => <span key={c.id} className="swatch" style={{ background: c.hex }} />)}

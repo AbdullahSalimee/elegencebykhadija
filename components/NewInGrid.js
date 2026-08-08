@@ -1,5 +1,6 @@
 "use client";
 import { useCart } from "@/lib/cart-context";
+import ProductPhoto from "@/components/ProductPhoto";
 
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00");
@@ -19,9 +20,7 @@ export default function NewInGrid({ products }) {
             onClick={() => openProduct(p.id)}
           >
             <div className="newin-photo-wrap">
-              <div className="plate ph newin-photo">
-                <span>{p.name} — product photo</span>
-              </div>
+              <ProductPhoto product={p} className="newin-photo" />
               <span className="newin-badge">New</span>
               <span className="newin-num">
                 {String(i + 1).padStart(2, "0")}
