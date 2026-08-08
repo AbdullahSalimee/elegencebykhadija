@@ -1,8 +1,8 @@
 # Elegance by Khadija — Next.js storefront
 
 A Next.js (App Router) storefront backed by Supabase: home, product quick-view, cart drawer,
-checkout with Cash on Delivery / WhatsApp / JazzCash-Easypaisa (disabled placeholder), order
-tracking, and an admin console for stock, orders, and nav/category settings.
+checkout with Cash on Delivery / JazzCash / Easypaisa, customer accounts with order tracking, and
+an admin console for stock, orders, and nav/category settings.
 
 ## Set up Supabase (required — the app won't build or run without this)
 
@@ -13,6 +13,14 @@ tracking, and an admin console for stock, orders, and nav/category settings.
 3. In Project Settings → API, copy the **Project URL** and the **service_role** key.
 4. `cp .env.example .env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and
    `SUPABASE_SERVICE_ROLE_KEY`.
+
+5. Run `supabase/admin.sql`, then `supabase/auth.sql`, in that order.
+
+**Already have a database from an earlier version?** Run `supabase/admin.sql` and then
+`supabase/auth.sql` — not the migrations again (re-running `0001_init.sql` aborts on
+`create table … already exists`, which is why a database set up early can be missing
+`orders.customer_email` and the tracking trigger). Both files only add what's missing, back-fill
+existing rows where it matters, and are safe to run more than once.
 
 ```
 npm install
@@ -50,9 +58,8 @@ works without it.
   `/api/orders`, which really checks and decrements stock now.
 - `components/ProductCard.js` — the one interactive piece (click-to-open + photo) shared by every
   product grid; everything else in those grids is a plain Server Component.
-- `app/track/` + `app/api/orders/track/route.js` — public order tracking (order number + phone,
-  same generic "not found" for either being wrong so orders can't be enumerated). Linked from the
-  footer and the post-checkout confirmation.
+- `lib/auth.js` + `lib/data/customers.js` + `app/api/auth/*` — customer accounts (see **Accounts**
+  below). `app/track/` lists the logged-in customer's own orders and their status timelines.
 - `lib/email.js` — order confirmation + status-change emails via Resend. Provider-swappable: every
   call site only knows `sendOrderConfirmationEmail`/`sendOrderStatusEmail`, not Resend itself.
 - `app/globals.css` — design tokens (colors, spacing) as CSS variables; fonts are loaded via
@@ -68,20 +75,48 @@ product with no photo yet falls back to the placeholder tiles.
 
 ## Email
 
-Optional. Create a free account at [resend.com](https://resend.com), verify a sending domain, and
-set `RESEND_API_KEY` + `EMAIL_FROM` in `.env.local`. Two emails fire automatically:
+Optional, and there are two ways to send. Whichever is configured wins; Gmail takes priority.
+
+**Gmail (no domain required).** Turn on 2-Step Verification for your Google account, create an App
+Password under *Security → App passwords*, and set `GMAIL_USER` + `GMAIL_APP_PASSWORD`. Sends to
+any recipient, ~500/day, and customers see your Gmail address as the sender. Good enough to run a
+shop on before you own a domain.
+
+**Resend (for launch).** Set `RESEND_API_KEY` + `EMAIL_FROM`. Note that Resend will only deliver to
+your own account address until you add a domain at [resend.com/domains](https://resend.com/domains)
+and add its DNS records — until then `EMAIL_FROM` must be `onboarding@resend.dev`.
+
+Two emails fire automatically:
 - **Order confirmation**, right after checkout — only if the customer entered an email (it's an
-  optional field; COD/WhatsApp orders in Pakistan very often don't have one).
+  optional field; COD orders in Pakistan very often don't have one).
 - **Status follow-up**, whenever an admin changes an order's status in `/admin/orders`.
 
-Without `RESEND_API_KEY` set, both quietly no-op (logged to the console) — an unconfigured or
-down email provider never blocks placing or updating an order.
+With no provider configured, both quietly no-op (logged to the console) — an unconfigured or down
+email provider never blocks placing or updating an order.
+
+## Accounts
+
+Customers log in with **their phone number and a password** — there is no separate sign-up step to
+get through before buying. Checkout doubles as registration: a first-time buyer types the details
+they'd have to type anyway plus a password, and `POST /api/auth/signup` creates the account before
+`POST /api/orders` places the order against it. If that number already has an account, the checkout
+form switches to "enter your password to continue" rather than turning them away.
+
+- Sessions last a year in an httpOnly cookie, so a customer stays logged in on the device they
+  ordered from. Only a SHA-256 of the session token is stored (`customer_sessions`); passwords are
+  scrypt-hashed by `lib/auth.js` and only the hash reaches the database.
+- Phone numbers are normalised (`0300 1234567`, `+92 300 1234567` and `03001234567` are one
+  account), which is also how `link_customer_orders()` adopts orders placed before the account
+  existed.
+- Orders are read back scoped to the session's `customer_id` — `/api/account/orders` never takes an
+  id from the request, so there's nothing to tamper with.
+- `/login` exists for coming back on a new device or after logging out.
 
 ## Known gaps
 
-- **No auth.** Admin routes (`/admin/*` and their `/api/*` mutation endpoints) are not
-  authenticated — same as before, not a regression introduced here, but worth fixing before this
-  goes live with real customer/order data.
-- **Payments.** COD + WhatsApp need no gateway. Add JazzCash/Easypaisa once the merchant account
-  is approved — both are hosted-checkout redirects + a server-side signature + a webhook that
-  flips `pending → paid`. Never trust the browser redirect alone; always verify server-side.
+- **Admin is still unauthenticated.** `/admin/*` and its `/api/*` mutation endpoints have no login
+  — customer accounts do not cover the admin console. Worth fixing before this goes live.
+- **Payments.** COD needs no gateway. JazzCash and Easypaisa are selectable at checkout but are
+  settled manually today — wire the real gateways once the merchant account is approved (hosted
+  checkout redirect + server-side signature + a webhook that flips `pending → paid`). Never trust
+  the browser redirect alone; always verify server-side.

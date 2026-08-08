@@ -26,9 +26,10 @@ export default function ContactPage() {
         </div>
         <h1 style={{ fontSize: 48 }}>Let's talk fabric.</h1>
         <p style={{ fontSize: 16, opacity: 0.8 }}>
-          Most of our customers order over WhatsApp — it's the fastest way to
-          check stock, confirm a colourway, or ask before you buy. Write your
-          message below and we'll pick it up from there.
+          Orders are placed on the site and tracked from your account — but for
+          anything else, WhatsApp is the fastest way to check stock, confirm a
+          colourway, or ask before you buy. Write your message below and we'll
+          pick it up from there.
         </p>
       </div>
 

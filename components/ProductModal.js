@@ -17,8 +17,12 @@ export default function ProductModal() {
   if (!activeProductId) return null;
   const p = getProductById(activeProductId);
   if (!p) return null;
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
-  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent("Hi, I would like to order: " + p.name)}`;
+
+  // Stock lives on the colourway, so what's addable depends on which one is
+  // selected. Nothing selected, or nothing left of it, means nothing to add.
+  const activeColor = p.colors.find((c) => c.id === activeColorId) || null;
+  const inStock = !!activeColor && activeColor.stock > 0;
+  const maxQty = Math.max(1, activeColor?.stock || 1);
 
   return (
     <div className="dialog-backdrop" onClick={closeProduct}>
@@ -106,11 +110,14 @@ export default function ProductModal() {
                     key={c.id}
                     className="swatch"
                     onClick={() => setActiveColorId(c.id)}
-                    title={c.label}
+                    title={c.stock > 0 ? c.label : `${c.label} — out of stock`}
                     style={{
                       background: c.hex,
                       width: 28,
                       height: 28,
+                      // Sold-out colourways stay visible but read as unavailable
+                      // rather than silently failing at checkout.
+                      opacity: c.stock > 0 ? 1 : 0.35,
                       boxShadow:
                         activeColorId === c.id
                           ? "0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent)"
@@ -119,6 +126,16 @@ export default function ProductModal() {
                   />
                 ))}
               </div>
+              {activeColor && (
+                <div style={{ fontSize: 12, marginTop: 6, opacity: 0.75 }}>
+                  {activeColor.label}
+                  {activeColor.stock === 0
+                    ? " · out of stock"
+                    : activeColor.stock <= 3
+                      ? ` · only ${activeColor.stock} left`
+                      : ""}
+                </div>
+              )}
               <div
                 style={{
                   fontSize: 12,
@@ -142,7 +159,7 @@ export default function ProductModal() {
                 </div>
                 <div
                   className="btn btn-secondary qty-btn"
-                  onClick={() => setActiveQty(activeQty + 1)}
+                  onClick={() => setActiveQty(Math.min(maxQty, activeQty + 1))}
                 >
                   <Plus size={14} strokeWidth={2} />
                 </div>
@@ -150,19 +167,12 @@ export default function ProductModal() {
               <button
                 className="btn btn-primary btn-block"
                 onClick={() => addToCart(p.id, activeColorId, activeQty)}
+                disabled={!inStock}
               >
-                Add to Cart
+                {inStock ? "Add to Cart" : "Out of Stock"}
               </button>
-              <a
-                className="btn btn-secondary btn-block"
-                href={waLink}
-                target="_blank"
-                rel="noopener"
-              >
-                Order via WhatsApp
-              </a>
               <div style={{ fontSize: 12, opacity: 0.65, marginTop: 6 }}>
-                Cash on Delivery available · Estimated delivery 3–7 days
+                Cash on Delivery, JazzCash or Easypaisa · Estimated delivery 3–7 days
               </div>
             </div>
           </div>

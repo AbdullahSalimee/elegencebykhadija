@@ -1,9 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useEffect } from "react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { STATUSES, orderTotal } from "@/lib/orders";
+import { useSession, useMyOrders } from "@/hooks/useSession";
+import { useOrderUpdates } from "@/hooks/useOrderUpdates";
 import { PackageSearch, CheckCircle2 } from "lucide-react";
+
+// Order tracking, post-accounts. There's no order number to dig out of an old
+// text message any more: the session cookie says who you are, so this page
+// just lists everything you've ordered and where each one has got to. Status
+// changes made by the admin show up here the next time the page is opened —
+// the same moment the status email goes out.
 
 const STATUS_LABEL = {
   pending: "Order placed",
@@ -22,140 +30,115 @@ function formatDateTime(iso) {
   });
 }
 
+function OrderCard({ order }) {
+  const currentStepIndex = STATUSES.indexOf(order.status);
+
+  return (
+    <div className="panel" style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <PackageSearch size={18} strokeWidth={1.8} />
+        <div className="panel-title" style={{ marginBottom: 0 }}>{order.id}</div>
+        <span className={`status-pill status-${order.status}`} style={{ marginLeft: "auto", fontSize: 12 }}>
+          <span className="dot" /> {STATUS_LABEL[order.status] || order.status}
+        </span>
+      </div>
+      <p className="panel-sub">
+        Placed {order.createdAt} · {order.payMethod === "cod" ? "Cash on Delivery" : order.payMethod}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, margin: "20px 0" }}>
+        {STATUSES.filter((s) => s !== "returned" || order.status === "returned").map((s, i) => {
+          const reached = currentStepIndex >= 0 && i <= currentStepIndex;
+          const historyEntry = order.history.find((h) => h.status === s);
+          return (
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <CheckCircle2
+                size={16}
+                strokeWidth={2}
+                style={{ opacity: reached ? 1 : 0.25, color: reached ? "var(--color-accent-700)" : "inherit" }}
+              />
+              <span style={{ opacity: reached ? 1 : 0.45, fontWeight: reached ? 600 : 400, fontSize: 14 }}>
+                {STATUS_LABEL[s]}
+              </span>
+              {historyEntry && (
+                <span style={{ fontSize: 12, opacity: 0.55, marginLeft: "auto" }}>
+                  {formatDateTime(historyEntry.at)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hr" />
+      <table className="admin-table">
+        <tbody>
+          {order.lines.map((l, i) => (
+            <tr key={i}>
+              <td>
+                {l.productName} <span style={{ opacity: 0.6 }}>· {l.color}</span> × {l.qty}
+              </td>
+              <td className="num">Rs. {(l.price * l.qty).toLocaleString()}</td>
+            </tr>
+          ))}
+          <tr>
+            <td style={{ fontWeight: 700 }}>Total</td>
+            <td className="num" style={{ fontWeight: 700 }}>Rs. {orderTotal(order).toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {order.address && (
+        <p className="panel-sub" style={{ marginTop: 12 }}>Delivering to: {order.address}</p>
+      )}
+    </div>
+  );
+}
+
 export default function TrackPage() {
-  const [form, setForm] = useState({ orderId: "", phone: "" });
-  const [order, setOrder] = useState(null);
-  const [status, setStatus] = useState("idle"); // idle | loading | error | done
+  const { customer } = useSession();
+  const { orders, isLoading, needsLogin } = useMyOrders();
+  const { markAllSeen } = useOrderUpdates();
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setStatus("loading");
-    setOrder(null);
-    try {
-      const res = await fetch("/api/orders/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
-        setStatus("error");
-        return;
-      }
-      const data = await res.json();
-      setOrder(data.order);
-      setStatus("done");
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  const currentStepIndex = order ? STATUSES.indexOf(order.status) : -1;
+  // Looking at the orders is what "reading" the update means — clear the nav
+  // badge once they're actually on screen.
+  useEffect(() => {
+    if (orders.length > 0) markAllSeen();
+  }, [orders, markAllSeen]);
 
   return (
     <div className="pg-track">
       <Nav />
 
-      <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 560 }}>
-        <div className="tag tag-outline" style={{ marginBottom: 16 }}>
-          Order tracking
-        </div>
-        <h1 style={{ fontSize: 44 }}>Where's my order?</h1>
+      <div className="page-head" style={{ padding: "56px 48px 20px", maxWidth: 620 }}>
+        <div className="tag tag-outline" style={{ marginBottom: 16 }}>Order tracking</div>
+        <h1 style={{ fontSize: 44 }}>
+          {customer ? `Your orders, ${customer.name.split(" ")[0]}` : "Where's my order?"}
+        </h1>
         <p style={{ fontSize: 16, opacity: 0.8 }}>
-          Enter your order number and the phone number you checked out with.
+          {customer
+            ? "Every order you've placed with us, and exactly where each one has got to."
+            : "Log in with the phone number you ordered with to follow your orders."}
         </p>
       </div>
 
-      <div className="page-body" style={{ padding: "0 48px 64px", maxWidth: 560 }}>
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div className="field">
-            <label>Order number</label>
-            <input
-              className="input"
-              value={form.orderId}
-              onChange={(e) => setForm({ ...form, orderId: e.target.value })}
-              placeholder="EK-10432"
-              required
-            />
-          </div>
-          <div className="field">
-            <label>Phone number</label>
-            <input
-              className="input"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="03XX XXXXXXX"
-              required
-            />
-          </div>
-          <button className="btn btn-primary" disabled={status === "loading"} style={{ alignSelf: "flex-start" }}>
-            {status === "loading" ? "Looking up…" : "Track order"}
-          </button>
-        </form>
-
-        {status === "error" && (
-          <div className="admin-empty panel" style={{ marginTop: 24 }}>
-            We couldn't find an order with that number and phone combination.
-            Double-check both and try again, or{" "}
-            <a href="/contact">get in touch</a>.
-          </div>
-        )}
-
-        {order && (
-          <div className="panel" style={{ marginTop: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <PackageSearch size={18} strokeWidth={1.8} />
-              <div className="panel-title" style={{ marginBottom: 0 }}>
-                Hi {order.customer}, here's your order
-              </div>
-            </div>
+      <div className="page-body" style={{ padding: "0 48px 64px", maxWidth: 620 }}>
+        {needsLogin ? (
+          <div className="panel">
+            <div className="panel-title">You're not logged in</div>
             <p className="panel-sub">
-              {order.id} · placed {order.createdAt}
+              Your orders live in your account. Log in with your phone number and password to see them.
             </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, margin: "20px 0" }}>
-              {STATUSES.filter((s) => s !== "returned" || order.status === "returned").map((s, i) => {
-                const reached = currentStepIndex >= 0 && i <= currentStepIndex;
-                const historyEntry = order.history.find((h) => h.status === s);
-                return (
-                  <div key={s} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <CheckCircle2
-                      size={16}
-                      strokeWidth={2}
-                      style={{ opacity: reached ? 1 : 0.25, color: reached ? "var(--color-accent-700)" : "inherit" }}
-                    />
-                    <span style={{ opacity: reached ? 1 : 0.45, fontWeight: reached ? 600 : 400, fontSize: 14 }}>
-                      {STATUS_LABEL[s]}
-                    </span>
-                    {historyEntry && (
-                      <span style={{ fontSize: 12, opacity: 0.55, marginLeft: "auto" }}>
-                        {formatDateTime(historyEntry.at)}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="hr" />
-            <table className="admin-table">
-              <tbody>
-                {order.lines.map((l, i) => (
-                  <tr key={i}>
-                    <td>
-                      {l.productName} <span style={{ opacity: 0.6 }}>· {l.color}</span> × {l.qty}
-                    </td>
-                    <td className="num">Rs. {(l.price * l.qty).toLocaleString()}</td>
-                  </tr>
-                ))}
-                <tr>
-                  <td style={{ fontWeight: 700 }}>Total</td>
-                  <td className="num" style={{ fontWeight: 700 }}>
-                    Rs. {orderTotal(order).toLocaleString()}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <a className="btn btn-primary" href="/login" style={{ marginTop: 8 }}>Log in</a>
           </div>
+        ) : isLoading ? (
+          <div className="admin-empty panel">Loading your orders…</div>
+        ) : orders.length === 0 ? (
+          <div className="admin-empty panel">
+            No orders yet. <a href="/shop">Browse the collection</a> — everything you order will appear here.
+          </div>
+        ) : (
+          orders.map((order) => <OrderCard key={order.id} order={order} />)
         )}
       </div>
 

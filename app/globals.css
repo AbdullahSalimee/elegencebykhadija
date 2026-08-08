@@ -62,7 +62,13 @@ textarea.input { min-height: 90px; resize: vertical; }
 .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
 .tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
 
-.nav { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
+/* position + z-index are load-bearing, not decoration: the entrance animation
+   (.nav { animation: riseIn }) animates `transform`, which gives .nav its own
+   stacking context — so the search/account flyouts inside it can only stack
+   against their siblings, not against the page. Without a z-index here the nav
+   competes with the hero on document order alone and loses, and the flyouts
+   render behind the hero photo. */
+.nav { position: relative; z-index: 40; display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-divider); }
 .nav-brand { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 18px; margin-right: auto; }
 .nav a { color: inherit; text-decoration: none; font-size: 14px; }
 .nav a:hover { color: var(--color-accent); }
@@ -899,6 +905,27 @@ textarea.input { min-height: 90px; resize: vertical; }
   width: 16px; height: 16px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+}
+
+/* Unread marker on the account icon — an order moved on while you were away.
+   A dot, not a count: the number of status changes isn't the point, the fact
+   that something happened is. */
+.nav-alert-dot {
+  position: absolute;
+  top: 4px; right: 5px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #8f2f3a;
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+.nav-alert-dot.static { position: static; box-shadow: none; flex: none; }
+
+.nav-account-update {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  line-height: 1.35;
 }
 
 /* Hover/focus tooltip — add class="icon-tooltip" data-tooltip="Label" to any button */

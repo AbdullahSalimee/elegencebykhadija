@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useNavLinks } from "@/hooks/useSiteConfig";
+import { useSession, apiLogout } from "@/hooks/useSession";
+import { useOrderUpdates } from "@/hooks/useOrderUpdates";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 
 export default function Nav() {
   const { cartCount, openCart } = useCart();
   const { navLinks } = useNavLinks();
+  const { customer, isLoggedIn, mutate: mutateSession } = useSession();
+  const { updatedOrders, updatedCount, statusLabel } = useOrderUpdates();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -62,6 +66,13 @@ export default function Nav() {
   const toggleAccount = () => {
     setSearchOpen(false);
     setAccountOpen((v) => !v);
+  };
+
+  const logout = async () => {
+    setAccountOpen(false);
+    await apiLogout().catch(() => {});
+    await mutateSession();
+    router.push("/");
   };
 
   const submitSearch = (e) => {
@@ -129,21 +140,65 @@ export default function Nav() {
           <div className="nav-action-item" ref={accountRef}>
             <button
               className="btn btn-icon icon-tooltip"
-              data-tooltip="Account"
-              aria-label="Account"
+              data-tooltip={updatedCount > 0 ? "Order update" : "Account"}
+              aria-label={
+                updatedCount > 0
+                  ? `Account — ${updatedCount} order update${updatedCount > 1 ? "s" : ""}`
+                  : "Account"
+              }
               aria-expanded={accountOpen}
               onClick={toggleAccount}
             >
               <User size={18} strokeWidth={1.8} />
+              {updatedCount > 0 && <span className="nav-alert-dot" aria-hidden="true" />}
             </button>
             {accountOpen && (
               <div className="nav-flyout nav-account-flyout">
-                <a href="/track" onClick={() => setAccountOpen(false)}>
-                  Track your order
-                </a>
-                <a href="/contact" onClick={() => setAccountOpen(false)}>
-                  Contact us
-                </a>
+                {isLoggedIn ? (
+                  <>
+                    <div
+                      style={{ fontSize: 12, opacity: 0.6, padding: "2px 0 6px" }}
+                    >
+                      Signed in as {customer.name}
+                    </div>
+                    {updatedOrders.map((o) => (
+                      <a
+                        key={o.id}
+                        href="/track"
+                        className="nav-account-update"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        <span className="nav-alert-dot static" aria-hidden="true" />
+                        {o.id} is now {statusLabel(o.status)}
+                      </a>
+                    ))}
+                    <a href="/track" onClick={() => setAccountOpen(false)}>
+                      My orders
+                    </a>
+                    <a href="/contact" onClick={() => setAccountOpen(false)}>
+                      Contact us
+                    </a>
+                    <button
+                      className="btn-ghost"
+                      style={{ textAlign: "left", padding: 0, font: "inherit" }}
+                      onClick={logout}
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a href="/login" onClick={() => setAccountOpen(false)}>
+                      Log in
+                    </a>
+                    <a href="/track" onClick={() => setAccountOpen(false)}>
+                      My orders
+                    </a>
+                    <a href="/contact" onClick={() => setAccountOpen(false)}>
+                      Contact us
+                    </a>
+                  </>
+                )}
               </div>
             )}
           </div>
