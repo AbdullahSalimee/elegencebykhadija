@@ -58,7 +58,7 @@ export default function Footer() {
         <div className="eth-footer-brand">
           <Image
             className="brand-mark"
-            src="/logo.png"
+            src="/logo.webp"
             alt=""
             width={96}
             height={144}

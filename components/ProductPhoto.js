@@ -2,15 +2,17 @@
 import { useState } from "react";
 
 // Product photography, by filename convention: drop an image named after the
-// product id into public/products/ (zarnaab.jpg) and it appears everywhere that
-// product is rendered — grids, rows, modal, cart. No matching file and the
+// product id into public/products/ (zarnaab.webp) and it appears everywhere
+// that product is rendered — grids, rows, modal, cart. No matching file and the
 // striped placeholder stays exactly as it was, so a half-photographed catalogue
 // still demos cleanly.
 //
 // Extensions are tried in order, so whatever the photographer hands over works
-// without renaming. Once products come from the database this whole component
-// collapses to <img src={product.image} />.
-const EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
+// without renaming. webp leads because that is what the catalogue ships — a
+// miss here costs a real 404 per image before the fallback resolves. Once
+// products come from the database this whole component collapses to
+// <img src={product.image} />.
+const EXTENSIONS = ["webp", "png", "jpg", "jpeg"];
 
 export default function ProductPhoto({
   product: p,

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import AnnounceBar from "@/components/AnnounceBar";
 import { useCart } from "@/lib/cart-context";
 import { MEGA_NAV, UTILITY_LINKS } from "@/lib/site-config";
 import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
@@ -10,7 +11,7 @@ function BrandMark({ priority = false }) {
     <a className="eth-brand" href="/" aria-label="Elegance by Khadija — home">
       <Image
         className="brand-mark"
-        src="/logo.png"
+        src="/logo.webp"
         alt=""
         width={96}
         height={144}
@@ -23,9 +24,12 @@ function BrandMark({ priority = false }) {
   );
 }
 
-export default function Nav() {
+// `overlay` lifts the whole chrome out of the flow so it floats over the
+// element below it — used by the landing page so the hero shows through.
+export default function Nav({ overlay = false }) {
   const { cartCount, openCart } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   // Which mega panel is open on desktop, and which drawer group is expanded on
   // mobile. Separate pieces of state because the two menus can never be
   // visible at the same time.
@@ -45,6 +49,16 @@ export default function Nav() {
     };
   }, [menuOpen]);
 
+  // Past the first scroll the chrome has to go solid, or white-on-image text
+  // ends up sitting on white page content.
+  useEffect(() => {
+    if (!overlay) return;
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [overlay]);
+
   // Escape also backs out of an open mega panel.
   useEffect(() => {
     if (!openPanel) return;
@@ -53,8 +67,14 @@ export default function Nav() {
     return () => window.removeEventListener("keydown", onKey);
   }, [openPanel]);
 
-  return (
+  // An open mega panel needs a solid backdrop too — its own white surface
+  // against a transparent header would look detached.
+  const solid = scrolled || Boolean(openPanel);
+
+  const chrome = (
     <>
+      <AnnounceBar />
+
       {/* Utility row — support links only, so the category bar stays clean. */}
       <div className="eth-utility">
         {UTILITY_LINKS.map((link) => (
@@ -149,6 +169,20 @@ export default function Nav() {
         </div>
 
       </header>
+    </>
+  );
+
+  return (
+    <>
+      {overlay ? (
+        <div
+          className={`eth-chrome-overlay${solid ? " eth-chrome-solid" : ""}`}
+        >
+          {chrome}
+        </div>
+      ) : (
+        chrome
+      )}
 
       {menuOpen && (
         <div className="nav-backdrop" onClick={() => setMenuOpen(false)} />

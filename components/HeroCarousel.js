@@ -4,6 +4,11 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HERO_SLIDES } from "@/lib/site-config";
 
+// How long each slide holds. Also drives the push-in animation via a custom
+// property, so the zoom finishes exactly as the slide changes — tune this
+// one number and the motion stays in step.
+const SLIDE_MS = 3000;
+
 export default function HeroCarousel() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -14,7 +19,7 @@ export default function HeroCarousel() {
   useEffect(() => {
     if (count < 2 || paused) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), 6500);
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), SLIDE_MS);
     return () => clearInterval(id);
   }, [count, paused, index]);
 
@@ -23,6 +28,7 @@ export default function HeroCarousel() {
       className="eth-hero"
       aria-roledescription="carousel"
       aria-label="Featured collections"
+      style={{ "--eth-slide-ms": `${SLIDE_MS}ms` }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -32,13 +38,23 @@ export default function HeroCarousel() {
           className={`eth-hero-slide${i === index ? " eth-hero-slide-on" : ""}`}
           aria-hidden={i !== index}
         >
+          {/* Art direction, not a resize. Both are rendered and CSS hides
+              one — a display:none image is never intersected, so the browser
+              skips downloading it. That is also why neither carries
+              `priority`: it would preload the desktop file onto phones. */}
           <Image
             src={slide.image}
             alt=""
             fill
             sizes="100vw"
-            priority={i === 0}
-            className="eth-hero-img"
+            className="eth-hero-img eth-hero-img-lg"
+          />
+          <Image
+            src={slide.mobileImage ?? slide.image}
+            alt=""
+            fill
+            sizes="100vw"
+            className="eth-hero-img eth-hero-img-sm"
           />
           <div className="eth-hero-scrim" />
           <div className="eth-hero-copy">

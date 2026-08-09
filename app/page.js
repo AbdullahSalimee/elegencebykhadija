@@ -1,4 +1,3 @@
-import AnnounceBar from "@/components/AnnounceBar";
 import Nav from "@/components/Nav";
 import HeroCarousel from "@/components/HeroCarousel";
 import CategoryTiles from "@/components/CategoryTiles";
@@ -10,8 +9,8 @@ import Footer from "@/components/Footer";
 export default function HomePage() {
   return (
     <div className="pg-home eth">
-      <AnnounceBar />
-      <Nav />
+      {/* Landing page only: the chrome floats over the hero photograph. */}
+      <Nav overlay />
       <HeroCarousel />
       <CategoryTiles />
       <ProductRail title="New Arrivals" href="/new-in" select="new" limit={6} />
