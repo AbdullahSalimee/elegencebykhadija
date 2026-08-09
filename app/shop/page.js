@@ -7,17 +7,13 @@ export const metadata = { title: "Shop All — Elegance by Khadija" };
 
 export default function ShopPage() {
   return (
-    <div className="pg-shop">
+    <div className="pg-shop eth">
       <Nav />
 
-      <div className="page-head" style={{ padding: "48px 48px 0" }}>
-        <div className="tag tag-outline" style={{ marginBottom: 16 }}>
-          The full collection
-        </div>
-        <h1 style={{ fontSize: 44, maxWidth: "18ch" }}>
-          Every unstitched piece, in one place.
-        </h1>
-        <p style={{ maxWidth: "54ch", fontSize: 16, opacity: 0.8 }}>
+      <div className="page-head eth-page-head">
+        <div className="eth-eyebrow">The full collection</div>
+        <h1 className="eth-page-title">Every unstitched piece, in one place.</h1>
+        <p className="eth-page-copy">
           Filter by fabric, category or price to find the piece that suits your
           tailor's next order.
         </p>

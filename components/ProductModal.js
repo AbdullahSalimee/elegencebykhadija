@@ -17,7 +17,7 @@ export default function ProductModal() {
   if (!activeProductId) return null;
   const p = getProductById(activeProductId);
   if (!p) return null;
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
+  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923233002222";
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent("Hi, I would like to order: " + p.name)}`;
 
   return (

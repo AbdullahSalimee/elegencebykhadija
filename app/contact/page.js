@@ -6,7 +6,7 @@ import { MessageCircle, Mail, MapPin, Clock, Send } from "lucide-react";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", message: "" });
-  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
+  const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923233002222";
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(
     form.name || form.message
       ? `Hi, I'm ${form.name || "..."}. ${form.message}`
@@ -14,18 +14,13 @@ export default function ContactPage() {
   )}`;
 
   return (
-    <div className="pg-contact">
+    <div className="pg-contact eth">
       <Nav />
 
-      <div
-        className="page-head"
-        style={{ padding: "56px 48px 20px", maxWidth: 680 }}
-      >
-        <div className="tag tag-outline" style={{ marginBottom: 16 }}>
-          Get in touch
-        </div>
-        <h1 style={{ fontSize: 48 }}>Let's talk fabric.</h1>
-        <p style={{ fontSize: 16, opacity: 0.8 }}>
+      <div className="page-head eth-page-head">
+        <div className="eth-eyebrow">Get in touch</div>
+        <h1 className="eth-page-title">Let's talk fabric.</h1>
+        <p className="eth-page-copy">
           Most of our customers order over WhatsApp — it's the fastest way to
           check stock, confirm a colourway, or ask before you buy. Write your
           message below and we'll pick it up from there.

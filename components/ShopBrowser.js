@@ -2,7 +2,7 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
 import { CATEGORIES } from "@/lib/site-config";
-import ProductPhoto from "@/components/ProductPhoto";
+import ProductCard from "@/components/ProductCard";
 import { SlidersHorizontal, X, ChevronDown, Grid2x2, Grid3x3, LayoutGrid } from "lucide-react";
 
 const FABRICS = ["Lawn", "Silk", "Karandi"];
@@ -95,7 +95,7 @@ export default function ShopBrowser({ products }) {
   }, [products, categories, fabrics, pieces, maxPrice, onSaleOnly, inStockOnly, sort]);
 
   return (
-    <div className="page-body" style={{ padding: "24px 48px 64px" }}>
+    <div className="page-body eth-page-body">
       <div className="shop-topbar">
         <button
           className="btn btn-secondary shop-filter-toggle"
@@ -329,76 +329,12 @@ export default function ShopBrowser({ products }) {
               </button>
             </div>
           ) : (
-            <div className="shop-grid" style={{ "--shop-cols": gridCols }}>
+            <div
+              className="eth-grid shop-grid"
+              style={{ "--shop-cols": gridCols }}
+            >
               {filtered.map((p) => (
-                <div
-                  key={p.id}
-                  className="card"
-                  style={{ cursor: "pointer", padding: 0, border: "none" }}
-                  onClick={() => openProduct(p.id)}
-                >
-                  <ProductPhoto product={p} style={{ height: 420, position: "relative" }}>
-                    {p.compareAt && p.compareAt > p.price && (
-                      <span
-                        className="tag"
-                        style={{
-                          position: "absolute",
-                          top: 10,
-                          left: 10,
-                          background: "var(--color-accent-700)",
-                          color: "#fff",
-                        }}
-                      >
-                        Sale
-                      </span>
-                    )}
-                    {!p.colors.some((c) => c.stock > 0) && (
-                      <span
-                        className="stock-chip out"
-                        style={{ position: "absolute", top: 10, right: 10 }}
-                      >
-                        Out of stock
-                      </span>
-                    )}
-                  </ProductPhoto>
-                  <div style={{ padding: "10px 2px" }}>
-                    <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                      {p.colors.map((c) => (
-                        <span
-                          key={c.id}
-                          className="swatch"
-                          style={{ background: c.hex }}
-                          title={c.label}
-                        />
-                      ))}
-                    </div>
-                    <div className="card-title">{p.name}</div>
-                    <div className="card-meta">
-                      {p.fabric} · {p.pieces}
-                    </div>
-                    <div style={{ marginTop: 6, fontSize: 15 }}>
-                      {p.compareAt && (
-                        <span
-                          style={{
-                            textDecoration: "line-through",
-                            opacity: 0.5,
-                            marginRight: 8,
-                          }}
-                        >
-                          Rs. {p.compareAt.toLocaleString()}
-                        </span>
-                      )}
-                      <span
-                        style={{
-                          color: "var(--color-accent-700)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Rs. {p.price.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard key={p.id} product={p} onOpen={openProduct} />
               ))}
             </div>
           )}

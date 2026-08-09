@@ -1,13 +1,36 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
-import { NAV_LINKS } from "@/lib/site-config";
-import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
+import { MEGA_NAV, UTILITY_LINKS } from "@/lib/site-config";
+import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+
+function BrandMark({ priority = false }) {
+  return (
+    <a className="eth-brand" href="/" aria-label="Elegance by Khadija — home">
+      <Image
+        className="brand-mark"
+        src="/logo.png"
+        alt=""
+        width={96}
+        height={144}
+        priority={priority}
+      />
+      <span className="eth-brand-text">
+        ELEGANCE <span className="eth-brand-sub">by Khadija</span>
+      </span>
+    </a>
+  );
+}
 
 export default function Nav() {
   const { cartCount, openCart } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const links = [...NAV_LINKS].sort((a, b) => a.order - b.order);
+  // Which mega panel is open on desktop, and which drawer group is expanded on
+  // mobile. Separate pieces of state because the two menus can never be
+  // visible at the same time.
+  const [openPanel, setOpenPanel] = useState(null);
+  const [openGroup, setOpenGroup] = useState(null);
 
   // Lock the page behind the drawer, and close on Escape.
   useEffect(() => {
@@ -22,44 +45,110 @@ export default function Nav() {
     };
   }, [menuOpen]);
 
+  // Escape also backs out of an open mega panel.
+  useEffect(() => {
+    if (!openPanel) return;
+    const onKey = (e) => e.key === "Escape" && setOpenPanel(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openPanel]);
+
   return (
     <>
-      <nav className="nav">
-        <button
-          className="btn btn-icon nav-toggle"
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(true)}
-        >
-          <Menu size={20} strokeWidth={1.8} />
-        </button>
+      {/* Utility row — support links only, so the category bar stays clean. */}
+      <div className="eth-utility">
+        {UTILITY_LINKS.map((link) => (
+          <a key={link.id} href={link.href}>
+            {link.label}
+          </a>
+        ))}
+      </div>
 
-        <div className="nav-brand">
-          ELEGANCE{" "}
-          <span style={{ opacity: 0.55, fontStyle: "italic" }}>by Khadija</span>
+      <header
+        className="eth-header"
+        onMouseLeave={() => setOpenPanel(null)}
+      >
+        <div className="eth-header-bar">
+          <button
+            className="btn btn-icon eth-toggle"
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(true)}
+          >
+            <Menu size={22} strokeWidth={1.6} />
+          </button>
+
+          <BrandMark priority />
+
+          <nav className="eth-nav" aria-label="Primary">
+            {MEGA_NAV.map((item) => (
+              // onFocus bubbles, so tabbing anywhere inside the panel keeps it
+              // open — that is what makes the mega menu keyboard-reachable.
+              <div
+                key={item.id}
+                className="eth-nav-item"
+                onMouseEnter={() => setOpenPanel(item.panel ? item.id : null)}
+                onFocus={() => setOpenPanel(item.panel ? item.id : null)}
+              >
+                <a
+                  className={`eth-nav-link${item.accent ? " eth-nav-link-accent" : ""}`}
+                  href={item.href}
+                  aria-expanded={item.panel ? openPanel === item.id : undefined}
+                >
+                  {item.label}
+                  {item.panel && <ChevronDown size={13} strokeWidth={2} />}
+                </a>
+
+                {/* Rendered inside the item so DOM order matches reading
+                    order; it still spans the full width because the sticky
+                    header is the nearest positioned ancestor. */}
+                {item.panel && (
+                  <div
+                    className={`eth-mega${openPanel === item.id ? " eth-mega-open" : ""}`}
+                    hidden={openPanel !== item.id}
+                  >
+                    <div className="eth-mega-inner">
+                      {item.panel.columns.map((col) => (
+                        <div key={col.id} className="eth-mega-col">
+                          <div className="eth-mega-heading">{col.heading}</div>
+                          {col.links.map((link) => (
+                            <a key={link.label} href={link.href}>
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
+                      ))}
+                      <a className="eth-mega-feature" href={item.panel.feature.href}>
+                        <span className="eth-mega-feature-eyebrow">
+                          {item.panel.feature.eyebrow}
+                        </span>
+                        <span className="eth-mega-feature-title">
+                          {item.panel.feature.title}
+                        </span>
+                        <span className="eth-mega-feature-cta">Shop now →</span>
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+
+          <div className="eth-actions">
+            <button className="btn btn-icon" aria-label="Search">
+              <Search size={19} strokeWidth={1.6} />
+            </button>
+            <button className="btn btn-icon eth-action-account" aria-label="Account">
+              <User size={19} strokeWidth={1.6} />
+            </button>
+            <button className="btn btn-icon" aria-label="Cart" onClick={openCart}>
+              <ShoppingBag size={19} strokeWidth={1.6} />
+              {cartCount > 0 && <span className="nav-cart-badge">{cartCount}</span>}
+            </button>
+          </div>
         </div>
 
-        <div className="nav-links">
-          {links.map((link) => (
-            <a key={link.id} href={link.href}>
-              {link.label}
-            </a>
-          ))}
-        </div>
-
-        <div className="nav-actions">
-          <button className="btn btn-icon" aria-label="Search">
-            <Search size={18} strokeWidth={1.8} />
-          </button>
-          <button className="btn btn-icon" aria-label="Account">
-            <User size={18} strokeWidth={1.8} />
-          </button>
-          <button className="btn btn-icon" aria-label="Cart" onClick={openCart}>
-            <ShoppingBag size={18} strokeWidth={1.8} />
-            {cartCount > 0 && <span className="nav-cart-badge">{cartCount}</span>}
-          </button>
-        </div>
-      </nav>
+      </header>
 
       {menuOpen && (
         <div className="nav-backdrop" onClick={() => setMenuOpen(false)} />
@@ -70,12 +159,7 @@ export default function Nav() {
         aria-hidden={!menuOpen}
       >
         <div className="nav-drawer-head">
-          <div className="nav-brand" style={{ marginRight: 0 }}>
-            ELEGANCE{" "}
-            <span style={{ opacity: 0.55, fontStyle: "italic" }}>
-              by Khadija
-            </span>
-          </div>
+          <BrandMark />
           <button
             className="btn btn-icon"
             aria-label="Close menu"
@@ -85,16 +169,72 @@ export default function Nav() {
             <X size={20} strokeWidth={1.8} />
           </button>
         </div>
-        {links.map((link) => (
-          <a
-            key={link.id}
-            href={link.href}
-            tabIndex={menuOpen ? 0 : -1}
-            onClick={() => setMenuOpen(false)}
-          >
-            {link.label}
-          </a>
-        ))}
+
+        {MEGA_NAV.map((item) =>
+          item.panel ? (
+            // Mega menus become accordions on mobile rather than being
+            // dropped, so nothing in the desktop menu is unreachable there.
+            <div key={item.id} className="eth-drawer-group">
+              <button
+                className="eth-drawer-trigger"
+                tabIndex={menuOpen ? 0 : -1}
+                aria-expanded={openGroup === item.id}
+                onClick={() =>
+                  setOpenGroup((cur) => (cur === item.id ? null : item.id))
+                }
+              >
+                {item.label}
+                <ChevronDown
+                  size={16}
+                  strokeWidth={2}
+                  className={openGroup === item.id ? "eth-chev-open" : ""}
+                />
+              </button>
+              {openGroup === item.id && (
+                <div className="eth-drawer-panel">
+                  {item.panel.columns.map((col) => (
+                    <div key={col.id}>
+                      <div className="eth-mega-heading">{col.heading}</div>
+                      {col.links.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          tabIndex={menuOpen ? 0 : -1}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <a
+              key={item.id}
+              className={item.accent ? "eth-drawer-accent" : undefined}
+              href={item.href}
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </a>
+          ),
+        )}
+
+        <div className="eth-drawer-utility">
+          {UTILITY_LINKS.map((link) => (
+            <a
+              key={link.id}
+              href={link.href}
+              tabIndex={menuOpen ? 0 : -1}
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
       </div>
     </>
   );

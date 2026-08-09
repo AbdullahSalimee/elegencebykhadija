@@ -18,80 +18,21 @@ export default function SalePage() {
   const bestPct = onSale.length > 0 ? Math.max(...onSale.map((p) => p.pct)) : 0;
 
   return (
-    <div className="pg-sale">
+    <div className="pg-sale eth">
       <Nav />
 
-      <div
-        className="page-head"
-        style={{
-          background: "var(--color-neutral-900)",
-          color: "#efe9df",
-          padding: "64px 48px 8px",
-        }}
-      >
-        <div
-          className="page-head-row"
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 24,
-            flexWrap: "wrap",
-          }}
-        >
+      <div className="page-head eth-page-head">
+        <div className="page-head-row eth-page-head-row">
           <div>
-            <div
-              className="tag"
-              style={{
-                border: "1px solid var(--color-accent-300)",
-                color: "var(--color-accent-300)",
-                marginBottom: 16,
-                letterSpacing: ".08em",
-                textTransform: "uppercase",
-              }}
-            >
-              The Sale
-            </div>
-            <h1
-              style={{
-                fontSize: 52,
-                color: "#f7f2e9",
-                maxWidth: "16ch",
-                margin: 0,
-              }}
-            >
-              Marked down, not compromised.
-            </h1>
-            <p
-              style={{
-                maxWidth: "50ch",
-                fontSize: 16,
-                opacity: 0.82,
-                margin: "14px 0 0",
-              }}
-            >
+            <div className="eth-eyebrow eth-eyebrow-sale">The Sale</div>
+            <h1 className="eth-page-title">Marked down, not compromised.</h1>
+            <p className="eth-page-copy">
               End-of-season pieces at their final price — same fabric, same
               stitching, no seconds.
             </p>
           </div>
-          <div
-            className="page-head-aside"
-            style={{
-              textAlign: "right",
-              fontSize: 13,
-              opacity: 0.75,
-              lineHeight: 1.6,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 30,
-                fontFamily: "var(--font-heading)",
-                fontWeight: 600,
-                color: "var(--color-accent-300)",
-                lineHeight: 1,
-              }}
-            >
+          <div className="page-head-aside eth-page-aside">
+            <div className="eth-page-figure eth-page-figure-sale">
               up to {bestPct}%
             </div>
             off across {onSale.length} pieces
@@ -99,13 +40,6 @@ export default function SalePage() {
             total savings Rs. {totalSavings.toLocaleString()}
           </div>
         </div>
-      </div>
-
-      <div style={{ background: "var(--color-neutral-900)", paddingBottom: 8 }}>
-        <div
-          className="hr section-rule"
-          style={{ margin: "0 48px", background: "rgba(239,233,223,.14)" }}
-        />
       </div>
 
       {onSale.length === 0 ? (

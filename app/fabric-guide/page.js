@@ -6,18 +6,13 @@ export const metadata = { title: "Fabric Guide — Elegance by Khadija" };
 
 export default function FabricGuidePage() {
   return (
-    <div className="pg-fabric">
+    <div className="pg-fabric eth">
       <Nav />
 
-      <div
-        className="page-head"
-        style={{ padding: "56px 48px 20px", maxWidth: 780 }}
-      >
-        <div className="tag tag-outline" style={{ marginBottom: 16 }}>
-          Know your fabric
-        </div>
-        <h1 style={{ fontSize: 48 }}>The Fabric Guide</h1>
-        <p style={{ fontSize: 16, opacity: 0.8 }}>
+      <div className="page-head eth-page-head">
+        <div className="eth-eyebrow">Know your fabric</div>
+        <h1 className="eth-page-title">The Fabric Guide</h1>
+        <p className="eth-page-copy">
           Unstitched means the fabric does the talking before your tailor ever
           touches it. Here's what each one is made for — so you can pick by
           season and occasion, not just print.

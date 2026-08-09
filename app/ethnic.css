@@ -1,0 +1,840 @@
+/* ============================================================
+   Ethnic-style storefront
+   A large-retailer skin over the existing brand tokens: white ground,
+   uppercase letterspaced sans for all chrome, image-led sections, and a
+   gender-first mega menu. The serif tokens still drive the editorial
+   pages (fabric guide, admin) — nothing here touches them.
+
+   Loaded after globals.css from app/layout.js, so it wins on conflict.
+   ============================================================ */
+
+:root {
+  --eth-ink: #141414;
+  --eth-muted: #6f6f6f;
+  --eth-line: #e5e3e0;
+  --eth-bg: #ffffff;
+  --eth-soft: #f6f4f1;
+  --eth-sale: #a8322a;
+  --eth-font: "Jost", "Helvetica Neue", Arial, sans-serif;
+  --eth-max: 1400px;
+  --eth-pad: 40px;
+}
+
+.eth { background: var(--eth-bg); color: var(--eth-ink); }
+
+.eth-eyebrow {
+  font-family: var(--eth-font);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.eth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 12px 30px;
+  font-family: var(--eth-font);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .2s ease, color .2s ease;
+}
+.eth-btn:hover { text-decoration: none; }
+.eth-btn-light { background: #fff; color: var(--eth-ink); border-color: #fff; }
+.eth-btn-light:hover { background: transparent; color: #fff; border-color: #fff; }
+.eth-btn-dark { background: var(--eth-ink); color: #fff; border-color: var(--eth-ink); }
+.eth-btn-dark:hover { background: transparent; color: var(--eth-ink); }
+
+/* ---------- Announcement ---------- */
+.eth-announce {
+  background: var(--eth-ink);
+  color: #f2efe9;
+  text-align: center;
+  font-family: var(--eth-font);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  min-height: 34px;
+}
+.eth-announce-msg { display: inline-block; animation: fadeIn .5s ease both; }
+
+/* ---------- Utility row ---------- */
+.eth-utility {
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  padding: 7px var(--eth-pad);
+  background: var(--eth-bg);
+  border-bottom: 1px solid var(--eth-line);
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.eth-utility a { color: var(--eth-muted); text-decoration: none; }
+.eth-utility a:hover { color: var(--eth-ink); }
+
+/* ---------- Header ---------- */
+.eth-header {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  background: var(--eth-bg);
+  border-bottom: 1px solid var(--eth-line);
+}
+.eth-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 12px var(--eth-pad);
+}
+.eth-toggle { display: none; }
+
+.eth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+}
+.eth-brand:hover { text-decoration: none; }
+/* Keeps the wordmark on one line so the header never grows a second row. */
+.eth-brand-text { white-space: nowrap; }
+.eth-brand-sub { opacity: .55; font-style: italic; }
+
+.eth-nav { display: flex; align-items: center; gap: 28px; flex: 1; }
+.eth-nav-item { display: flex; }
+.eth-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 0;
+  font-family: var(--eth-font);
+  font-size: 12px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--eth-ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.eth-nav-link:hover { text-decoration: none; border-bottom-color: var(--eth-ink); }
+.eth-nav-link-accent { color: var(--eth-sale); }
+.eth-nav-link-accent:hover { border-bottom-color: var(--eth-sale); }
+
+.eth-actions { display: flex; align-items: center; gap: 12px; flex: none; margin-left: auto; }
+
+/* ---------- Mega menu ---------- */
+.eth-mega {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--eth-bg);
+  border-top: 1px solid var(--eth-line);
+  box-shadow: var(--shadow-md);
+}
+.eth-mega[hidden] { display: none; }
+.eth-mega-open { animation: fadeIn .16s ease both; }
+.eth-mega-inner {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 1.15fr;
+  gap: 34px;
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 28px var(--eth-pad) 32px;
+}
+.eth-mega-heading {
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.eth-mega-col a,
+.eth-drawer-panel a {
+  display: block;
+  padding: 6px 0;
+  font-size: 13.5px;
+  color: var(--eth-muted);
+  text-decoration: none;
+}
+.eth-mega-col a:hover { color: var(--eth-ink); text-decoration: none; }
+.eth-mega-feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  padding: 22px;
+  background: var(--eth-soft);
+  border: 1px solid var(--eth-line);
+  color: inherit;
+  text-decoration: none;
+}
+.eth-mega-feature:hover { text-decoration: none; }
+.eth-mega-feature-eyebrow {
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--eth-sale);
+}
+.eth-mega-feature-title { font-family: var(--font-heading); font-size: 21px; line-height: 1.15; }
+.eth-mega-feature-cta {
+  font-family: var(--eth-font);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--eth-muted);
+}
+
+/* ---------- Hero carousel ---------- */
+.eth-hero {
+  position: relative;
+  height: clamp(430px, 62vh, 640px);
+  overflow: hidden;
+  background: var(--eth-soft);
+}
+.eth-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .6s ease;
+}
+.eth-hero-slide-on { opacity: 1; pointer-events: auto; }
+.eth-hero-img { object-fit: cover; object-position: center 22%; }
+.eth-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(12,12,12,.62) 0%, rgba(12,12,12,.28) 52%, rgba(12,12,12,0) 100%);
+}
+.eth-hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 15px;
+  height: 100%;
+  max-width: 620px;
+  padding: 0 var(--eth-pad);
+  color: #fff;
+}
+.eth-hero-title {
+  font-family: var(--eth-font);
+  font-weight: 300;
+  font-size: clamp(34px, 5.2vw, 62px);
+  line-height: 1.05;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  margin: 0;
+  color: #fff;
+}
+/* Sans, to match the title — the inherited serif made the hero read as two
+   unrelated type systems stacked on each other. */
+.eth-hero-body {
+  font-family: var(--eth-font);
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: .03em;
+  max-width: 42ch;
+  margin: 0;
+  opacity: .92;
+}
+
+.eth-hero-arrow {
+  position: absolute;
+  bottom: 24px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(20,20,20,.28);
+  color: #fff;
+  cursor: pointer;
+}
+.eth-hero-arrow:hover { background: rgba(20,20,20,.55); }
+/* Bottom-right pair rather than centred on the edges: vertically centred
+   arrows land directly on top of the hero copy. */
+.eth-hero-prev { right: 78px; }
+.eth-hero-next { right: 24px; }
+.eth-hero-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.eth-hero-dot {
+  width: 26px;
+  height: 3px;
+  padding: 0;
+  border: 0;
+  background: rgba(255,255,255,.45);
+  cursor: pointer;
+}
+.eth-hero-dot-on { background: #fff; }
+
+/* ---------- Sections ---------- */
+.eth-section {
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 56px var(--eth-pad);
+}
+.eth-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.eth-section-title {
+  font-family: var(--eth-font);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.eth-section-link {
+  font-family: var(--eth-font);
+  font-size: 11px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--eth-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.eth-section-link:hover { color: var(--eth-ink); text-decoration: none; }
+
+/* ---------- Category tiles ---------- */
+.eth-tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
+.eth-tile { display: block; color: inherit; text-decoration: none; }
+.eth-tile:hover { text-decoration: none; }
+.eth-tile-photo {
+  position: relative;
+  /* Portrait, not square — a square crop cuts a full-length suit off at the
+     knees and shrinks the garment to nothing. */
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--eth-soft);
+}
+.eth-tile-img { object-fit: cover; transition: transform .5s ease; }
+.eth-tile:hover .eth-tile-img { transform: scale(1.06); }
+.eth-tile-label {
+  display: block;
+  margin-top: 11px;
+  text-align: center;
+  font-family: var(--eth-font);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* ---------- Product grid ----------
+   Two suits per row is the floor at every width — the old grids collapsed
+   to one on small phones, which is the thing the client flagged. */
+.eth-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 22px; }
+/* The shop page keeps its 2/3/4 column toggle; the media queries further
+   down still clamp it on small screens. */
+.eth-grid.shop-grid { grid-template-columns: repeat(var(--shop-cols, 4), 1fr); }
+.eth-card { display: flex; flex-direction: column; }
+.eth-card-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: hidden;
+  cursor: pointer;
+}
+/* The plate's sepia wash belongs to the editorial pages; the retail grid
+   wants the photograph straight. */
+.eth-card-plate,
+.eth-tile-photo {
+  filter: none;
+  border: 0;
+  outline: 0;
+}
+.eth-card-plate { aspect-ratio: 3 / 4; height: auto; }
+.eth-card-plate .product-photo-img { transition: transform .5s ease; }
+.eth-card-photo:hover .product-photo-img { transform: scale(1.04); }
+
+.eth-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  background: var(--eth-sale);
+  color: #fff;
+  font-family: var(--eth-font);
+  font-size: 11px;
+  letter-spacing: .06em;
+  padding: 3px 9px;
+}
+.eth-badge-new { background: var(--eth-ink); }
+/* Stock state goes right so it never sits under the discount flag. */
+.eth-badge-out {
+  left: auto;
+  right: 10px;
+  background: var(--eth-bg);
+  color: var(--eth-ink);
+  border: 1px solid var(--eth-line);
+}
+.eth-card-quick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 11px;
+  background: rgba(20,20,20,.88);
+  color: #fff;
+  font-family: var(--eth-font);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  transform: translateY(100%);
+  transition: transform .25s ease;
+}
+.eth-card-photo:hover .eth-card-quick { transform: none; }
+/* Touch devices never fire hover, and the whole photo is already the
+   quick-view button — so the slide-up label would just be dead weight. */
+@media (hover: none) {
+  .eth-card-quick { display: none; }
+}
+
+.eth-card-body { padding: 12px 2px 0; }
+.eth-card-swatches { display: flex; gap: 6px; margin-bottom: 9px; }
+.eth-card-swatches .swatch { width: 14px; height: 14px; cursor: default; }
+.eth-card-name {
+  font-family: var(--eth-font);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+.eth-card-meta { font-size: 12px; color: var(--eth-muted); }
+.eth-card-price { margin-top: 7px; font-family: var(--eth-font); font-size: 13.5px; }
+.eth-price-was { text-decoration: line-through; color: var(--eth-muted); margin-right: 8px; }
+.eth-price-now { color: var(--eth-ink); font-weight: 500; }
+
+/* ---------- Promo banners ---------- */
+.eth-promos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 0 var(--eth-pad) 56px;
+}
+.eth-promo {
+  position: relative;
+  display: flex;
+  min-height: 380px;
+  overflow: hidden;
+  color: #fff;
+  text-decoration: none;
+}
+.eth-promo:hover { text-decoration: none; }
+.eth-promo-img { object-fit: cover; transition: transform .6s ease; }
+.eth-promo:hover .eth-promo-img { transform: scale(1.04); }
+.eth-promo-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12,12,12,.1) 30%, rgba(12,12,12,.72) 100%);
+}
+.eth-promo-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 30px;
+  width: 100%;
+}
+.eth-promo-title {
+  font-family: var(--eth-font);
+  font-weight: 300;
+  font-size: 30px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0;
+}
+.eth-promo-body { font-size: 14px; max-width: 38ch; margin: 0; opacity: .9; }
+
+/* ---------- Footer ---------- */
+.eth-footer {
+  background: var(--eth-bg);
+  border-top: 1px solid var(--eth-line);
+  padding: 50px var(--eth-pad) 0;
+}
+.eth-footer-cols {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr 1fr 1fr 1.2fr;
+  gap: 38px;
+  max-width: var(--eth-max);
+  margin: 0 auto;
+}
+.eth-footer-heading {
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.eth-footer-col { display: flex; flex-direction: column; gap: 9px; font-size: 13px; }
+.eth-footer-col a, .eth-footer-col span { color: var(--eth-muted); text-decoration: none; }
+.eth-footer-col a:hover { color: var(--eth-ink); text-decoration: none; }
+.eth-footer-blurb { font-size: 13px; color: var(--eth-muted); margin: 0; max-width: 34ch; }
+.eth-signup-row { display: flex; gap: 8px; margin: 14px 0 16px; }
+.eth-signup-input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid var(--eth-line);
+}
+.eth-socials { display: flex; flex-wrap: wrap; gap: 18px; }
+.eth-socials a {
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--eth-muted);
+  text-decoration: none;
+}
+.eth-socials a:hover { color: var(--eth-ink); text-decoration: none; }
+
+.eth-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  max-width: var(--eth-max);
+  margin: 40px auto 0;
+  padding: 18px 0 34px;
+  border-top: 1px solid var(--eth-line);
+  font-family: var(--eth-font);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  color: var(--eth-muted);
+}
+.eth-footer-brand { display: flex; align-items: center; gap: 10px; }
+.eth-region { display: inline-flex; align-items: center; gap: 9px; }
+.eth-region-label { text-transform: uppercase; letter-spacing: .13em; font-size: 10.5px; }
+.eth-region-select {
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--eth-ink);
+  background: transparent;
+  border: 1px solid var(--eth-line);
+}
+
+/* ---------- Drawer additions (mobile mega menu) ---------- */
+.eth-drawer-group { border-bottom: 1px solid var(--color-divider); }
+.eth-drawer-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 13px 0;
+  font-family: var(--eth-font);
+  font-size: 13px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.eth-chev-open { transform: rotate(180deg); }
+.eth-drawer-panel { padding: 2px 0 14px 12px; }
+.eth-drawer-panel .eth-mega-heading { margin: 10px 0 4px; color: var(--eth-muted); }
+.eth-drawer-panel a { border: 0; font-family: var(--font-body); font-size: 13.5px; padding: 7px 0; }
+.eth-drawer-accent { color: var(--eth-sale) !important; }
+.eth-drawer-utility {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-divider);
+}
+.eth-drawer-utility a {
+  border: 0 !important;
+  font-family: var(--eth-font) !important;
+  font-size: 11px !important;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--eth-muted) !important;
+  padding: 7px 0 !important;
+}
+
+/* ============================================================
+   Interior pages — shop, new in, sale, contact, fabric guide
+   These carried a lot of inline styling from the editorial build, so the
+   page shells now use these classes instead. Only the chrome changes:
+   filters, copy and behaviour are untouched.
+   ============================================================ */
+
+.eth .page-head,
+.eth .page-body { background: var(--eth-bg); color: var(--eth-ink); }
+
+.eth-page-head {
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 52px var(--eth-pad) 8px;
+}
+.eth-page-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.eth-page-title {
+  font-family: var(--eth-font);
+  font-weight: 300;
+  font-size: clamp(30px, 4.2vw, 46px);
+  line-height: 1.06;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  max-width: 18ch;
+  margin: 12px 0 0;
+}
+.eth-page-copy {
+  max-width: 54ch;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--eth-muted);
+}
+.eth-eyebrow-sale { color: var(--eth-sale); }
+.eth-page-aside {
+  text-align: right;
+  font-family: var(--eth-font);
+  font-size: 12px;
+  letter-spacing: .06em;
+  line-height: 1.7;
+  color: var(--eth-muted);
+}
+.eth-page-figure {
+  font-family: var(--eth-font);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--eth-ink);
+}
+.eth-page-figure-sale { color: var(--eth-sale); }
+
+.eth-page-body {
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 28px var(--eth-pad) 72px;
+}
+
+/* Shop filters and topbar, recoloured to the flat retail palette. */
+.eth .shop-topbar,
+.eth .shop-sidebar { border-color: var(--eth-line); }
+.eth .shop-filter-title,
+.eth .panel-title {
+  font-family: var(--eth-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.eth .shop-filter-group { border-color: var(--eth-line); }
+.eth .shop-check-label { font-size: 13.5px; }
+.eth .shop-check-count { color: var(--eth-muted); }
+.eth .btn-ghost { color: var(--eth-sale); }
+.eth .btn-primary {
+  color: #fff;
+  background: var(--eth-ink);
+  border-color: var(--eth-ink);
+  border-radius: 0;
+}
+.eth .btn-secondary { border-radius: 0; border-color: var(--eth-line); }
+.eth .tag { border-radius: 0; }
+
+/* Fabric-guide cards sit on the white ground now. */
+.eth .fabric-card {
+  background: var(--eth-bg);
+  border-color: var(--eth-line);
+  border-radius: 0;
+}
+
+/* Quick View, cart and checkout render from the root layout, outside any
+   page wrapper — so these are unscoped. Every card on the site opens one,
+   and cream panels over a white page read as a mistake. */
+.dialog {
+  background: var(--eth-bg);
+  border-color: var(--eth-line);
+  border-radius: 0;
+}
+.dialog-title {
+  font-family: var(--eth-font);
+  font-weight: 400;
+  font-size: 17px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.dialog .btn-primary {
+  color: #fff;
+  background: var(--eth-ink);
+  border-color: var(--eth-ink);
+  border-radius: 0;
+}
+.dialog .btn-secondary { border-radius: 0; border-color: var(--eth-line); }
+.dialog .input { border-radius: 0; border-color: var(--eth-line); }
+
+/* ---------- Trust strip, re-skinned for the white ground ----------
+   The cream tile background reads as a stain against white, and the
+   serif label is out of step with the rest of the chrome. Column counts
+   are left to the existing rules so its breakpoints still apply. */
+.eth .trust-strip {
+  /* Centred with a gutter at every width, without fighting the base
+     rule's fixed side margins. */
+  width: min(100% - var(--eth-pad) * 2, var(--eth-max));
+  margin: 0 auto 56px;
+  background: var(--eth-line);
+  border: 1px solid var(--eth-line);
+}
+.eth .trust-item { background: var(--eth-bg); padding: 22px 18px; }
+.eth .trust-title {
+  font-family: var(--eth-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  color: var(--eth-ink);
+}
+.eth .trust-body { font-size: 12.5px; color: var(--eth-muted); opacity: 1; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  :root { --eth-pad: 28px; }
+  .eth-grid { grid-template-columns: repeat(3, 1fr); }
+  .eth-nav { gap: 20px; }
+  .eth-header-bar { gap: 22px; }
+}
+
+@media (max-width: 1080px) {
+  .eth-tiles { grid-template-columns: repeat(4, 1fr); }
+  .eth-footer-cols { grid-template-columns: 1.6fr 1fr 1fr; row-gap: 32px; }
+  /* The layout picks the count from here down, so the toggle is hidden and
+     the custom property stops applying. */
+  .eth-grid.shop-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Below this the mega menu becomes the drawer accordion. */
+@media (max-width: 900px) {
+  .eth-utility { display: none; }
+  .eth-nav { display: none; }
+  .eth-toggle { display: inline-flex; }
+  .eth-header-bar { gap: 8px; padding: 10px 16px; }
+  /* Hamburger left, logo centred, actions right — the phone layout. */
+  .eth-brand { margin: 0 auto; }
+  .eth-actions { gap: 2px; }
+
+  .eth-hero { height: clamp(400px, 66vh, 520px); }
+  .eth-hero-scrim {
+    background: linear-gradient(180deg, rgba(12,12,12,.18) 25%, rgba(12,12,12,.72) 100%);
+  }
+  .eth-hero-copy { justify-content: flex-end; max-width: none; padding: 0 24px 58px; gap: 12px; }
+  .eth-hero-arrow { display: none; }
+
+  .eth-section { padding: 44px 24px; }
+  .eth-promos { grid-template-columns: 1fr; padding: 0 24px 44px; }
+  .eth-promo { min-height: 300px; }
+  .eth-footer { padding: 40px 24px 0; }
+}
+
+@media (max-width: 760px) {
+  .eth-tiles { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .eth-footer-cols { grid-template-columns: 1fr 1fr; }
+  .eth-footer-signup { grid-column: 1 / -1; }
+}
+
+@media (max-width: 700px) {
+  .eth-grid,
+  .eth-grid.shop-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
+}
+
+@media (max-width: 560px) {
+  .eth-announce { font-size: 10.5px; letter-spacing: .07em; padding: 8px 12px; }
+  .eth-section { padding: 36px 18px; }
+  .eth-section-title { font-size: 13px; letter-spacing: .15em; }
+  .eth-promos { padding: 0 18px 36px; }
+  .eth-promo-copy { padding: 22px; }
+  .eth-promo-title { font-size: 24px; }
+  .eth-hero-copy { padding: 0 18px 54px; }
+  .eth-hero-body { font-size: 14px; }
+  .eth-footer { padding: 34px 18px 0; }
+  .eth-footer-bottom { margin-top: 30px; }
+  .eth-signup-row { flex-direction: column; }
+  .eth-btn { padding: 11px 22px; }
+}
+
+@media (max-width: 430px) {
+  .eth-tiles { grid-template-columns: repeat(2, 1fr); }
+  .eth-footer-cols { grid-template-columns: 1fr; gap: 26px; }
+  /* globals.css drops .shop-grid to a single column at 420px with
+     !important — two per row wins, so this has to outrank it. */
+  .eth-grid.shop-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .eth-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 12px; }
+  .eth-card-name { font-size: 12px; letter-spacing: .08em; }
+  .eth-card-price { font-size: 12.5px; }
+  .eth-price-was { margin-right: 6px; }
+}
+
+@media (max-width: 380px) {
+  /* Account lives in the drawer at this width; the bag has to stay. */
+  .eth-action-account { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eth-announce-msg,
+  .eth-mega-open { animation: none !important; }
+  .eth-hero-slide,
+  .eth-tile-img,
+  .eth-promo-img,
+  .eth-card-plate .product-photo-img,
+  .eth-card-quick { transition: none !important; }
+  .eth-tile:hover .eth-tile-img,
+  .eth-promo:hover .eth-promo-img,
+  .eth-card-photo:hover .product-photo-img { transform: none; }
+}
