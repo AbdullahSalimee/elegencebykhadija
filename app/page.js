@@ -1,10 +1,11 @@
 import Nav from "@/components/Nav";
 import HeroCarousel from "@/components/HeroCarousel";
-import CategoryTiles from "@/components/CategoryTiles";
-import ProductRail from "@/components/ProductRail";
+import ProductCarousel from "@/components/ProductCarousel";
+import CollectionBanner from "@/components/CollectionBanner";
 import PromoSplit from "@/components/PromoSplit";
 import TrustStrip from "@/components/TrustStrip";
 import Footer from "@/components/Footer";
+import { COLLECTION_BLOCKS } from "@/lib/site-config";
 
 export default function HomePage() {
   return (
@@ -12,11 +13,18 @@ export default function HomePage() {
       {/* Landing page only: the chrome floats over the hero photograph. */}
       <Nav overlay />
       <HeroCarousel />
-      <CategoryTiles />
-      <ProductRail title="New Arrivals" href="/new-in" select="new" limit={6} />
+
+      {/* Carousel first, then every collection block one after another.
+          Each element reveals as it scrolls into view. */}
+      <ProductCarousel title="Pret SS26 Vol II" select="new" limit={8} />
+
+      {COLLECTION_BLOCKS.map((block) => (
+        <CollectionBanner key={block.id} block={block} />
+      ))}
+
       <PromoSplit />
-      <ProductRail title="On Sale" href="/sale" select="sale" limit={6} />
       <TrustStrip />
+
       <Footer />
     </div>
   );

@@ -536,6 +536,168 @@
 .eth-price-was { text-decoration: line-through; color: var(--eth-muted); margin-right: 8px; }
 .eth-price-now { color: var(--eth-ink); font-weight: 500; }
 
+/* ============================================================
+   Collection blocks and carousels — everything below the hero
+   Centred headings over a short rule, full-width photography with a
+   caption plate straddling its bottom edge, and arrow carousels whose
+   cards centre their name and price.
+   ============================================================ */
+
+/* ---------- Scroll reveal ----------
+   Set by components/Reveal.js the first time an element enters view.
+   Opacity and transform only, so it composites on the GPU and never
+   triggers layout. */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity .75s cubic-bezier(.22, .9, .3, 1),
+    transform .75s cubic-bezier(.22, .9, .3, 1);
+}
+.reveal-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* The reveal wrapper becomes the grid item, so the banner inside has to
+   stretch to fill it or the pair loses its equal heights. */
+.eth-promo-reveal { display: flex; }
+.eth-promo-reveal > .eth-promo { flex: 1; }
+
+/* Fade only, no lift: these cells sit on a 1px divider grid, and sliding
+   them would flash the divider colour through the gaps mid-animation. */
+.trust-item.reveal { transform: none; }
+
+.hr-block {
+  max-width: var(--eth-max);
+  margin: 0 auto;
+  padding: 52px var(--eth-pad) 0;
+}
+.hr-head { text-align: center; margin-bottom: 24px; }
+.hr-title {
+  font-family: var(--eth-font);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.hr-rule {
+  display: block;
+  width: 38px;
+  height: 2px;
+  margin: 12px auto 0;
+  background: var(--eth-ink);
+}
+
+/* ---------- Collection block ---------- */
+/* Room for the caption plate that hangs past the image — without it the
+   plate would sit on top of whatever section follows. */
+.hr-figure-wrap { padding-bottom: 36px; }
+.hr-figure { position: relative; display: block; color: inherit; text-decoration: none; }
+.hr-figure:hover { text-decoration: none; }
+.hr-figure-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  max-height: 82vh;
+  overflow: hidden;
+  /* White, not the soft tint: the photography is a studio cut-out on white,
+     so any tint behind it shows as a visible rectangle around the model. */
+  background: var(--eth-bg);
+}
+.hr-figure-img { object-fit: cover; transition: transform .8s cubic-bezier(.22, .9, .3, 1); }
+.hr-figure:hover .hr-figure-img { transform: scale(1.03); }
+.hr-caption {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  min-width: 58%;
+  max-width: calc(100% - 32px);
+  padding: 15px 26px;
+  background: var(--eth-bg);
+  border: 1px solid var(--eth-line);
+  text-align: center;
+  font-family: var(--eth-font);
+  font-size: 14px;
+  letter-spacing: .08em;
+  line-height: 1.4;
+  color: var(--eth-ink);
+}
+
+/* ---------- Product carousel ---------- */
+.hr-carousel { position: relative; }
+.hr-track {
+  display: grid;
+  grid-auto-flow: column;
+  /* Two cards across on a phone, matching the reference. */
+  grid-auto-columns: calc((100% - 16px) / 2);
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.hr-track::-webkit-scrollbar { display: none; }
+
+.hr-card { scroll-snap-align: start; text-align: center; }
+.hr-card-photo {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  overflow: hidden;
+  cursor: pointer;
+}
+.hr-card-plate {
+  aspect-ratio: 3 / 4;
+  height: auto;
+  border: 0;
+  outline: 0;
+  filter: none;
+}
+.hr-card-plate .product-photo-img { transition: transform .6s cubic-bezier(.22, .9, .3, 1); }
+.hr-card-photo:hover .product-photo-img { transform: scale(1.04); }
+.hr-card-name {
+  font-family: var(--eth-font);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .04em;
+  margin: 14px 0 0;
+  color: var(--eth-ink);
+}
+.hr-card-price {
+  font-family: var(--eth-font);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 6px;
+  color: var(--eth-ink);
+}
+
+.hr-arrow {
+  position: absolute;
+  /* Sits on the photo rather than the caption below it. */
+  top: 34%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--eth-line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .94);
+  color: var(--eth-ink);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.hr-arrow:hover { background: #fff; }
+.hr-arrow-prev { left: -16px; }
+.hr-arrow-next { right: -16px; }
+
 /* ---------- Promo banners ---------- */
 .eth-promos {
   display: grid;
@@ -1164,6 +1326,40 @@
 
   .eth-footer { padding: 70px var(--eth-pad) 0; }
   .eth-footer-heading { font-size: 11.5px; }
+
+  /* ---- Collection blocks and carousels ---- */
+  .hr-block { padding: 80px var(--eth-pad) 0; }
+  .hr-head { margin-bottom: 34px; }
+  .hr-title { font-size: 20px; letter-spacing: .24em; }
+  .hr-rule { width: 44px; margin-top: 14px; }
+  /* The collection shots are studio cut-outs on white, and the model fills
+     the frame top to bottom — a wide crop would cut her in half. So the band
+     runs full width at a fixed height and the image is contained inside it
+     rather than cropped. The photo's own white ground meets the page's, so
+     there is no visible edge and nothing looks stranded. */
+  .hr-figure { max-width: none; }
+  .hr-figure-photo {
+    aspect-ratio: auto;
+    height: clamp(560px, 72vh, 780px);
+    max-height: none;
+  }
+  .hr-figure-img { object-fit: contain; }
+  .hr-figure:hover .hr-figure-img { transform: scale(1.02); }
+  .hr-figure-wrap { padding-bottom: 46px; }
+  .hr-caption {
+    bottom: -26px;
+    min-width: 0;
+    width: min(420px, 60%);
+    padding: 17px 30px;
+    font-size: 15px;
+  }
+
+  .hr-track { grid-auto-columns: calc((100% - 3 * 24px) / 4); gap: 24px; }
+  .hr-arrow { width: 48px; height: 48px; }
+  .hr-arrow-prev { left: -22px; }
+  .hr-arrow-next { right: -22px; }
+  .hr-card-name { font-size: 14px; margin-top: 16px; }
+  .hr-card-price { font-size: 15px; }
 }
 
 @media (max-width: 1200px) {
@@ -1234,6 +1430,18 @@
   .eth-footer-bottom { margin-top: 30px; }
   .eth-signup-row { flex-direction: column; }
   .eth-btn { padding: 11px 22px; }
+
+  .hr-block { padding: 42px 18px 0; }
+  .hr-head { margin-bottom: 20px; }
+  .hr-title { font-size: 15px; letter-spacing: .18em; }
+  .hr-caption { min-width: 64%; padding: 13px 18px; font-size: 13px; bottom: -20px; }
+  .hr-figure-wrap { padding-bottom: 32px; }
+  /* Pulled in tighter so the arrows stay inside the 18px gutter. */
+  .hr-arrow { width: 36px; height: 36px; }
+  .hr-arrow-prev { left: -10px; }
+  .hr-arrow-next { right: -10px; }
+  .hr-card-name { font-size: 12.5px; margin-top: 12px; }
+  .hr-card-price { font-size: 13px; }
 }
 
 @media (max-width: 430px) {
