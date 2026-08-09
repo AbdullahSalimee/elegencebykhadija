@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&family=Jost:wght@300;400;500&display=swap');
-
+/* Fonts are loaded by next/font in app/layout.js — it self-hosts them and
+   exposes these variables, so there is no render-blocking @import here. */
 :root {
   --color-bg: #f3f2f2;
   --color-surface: #eae9e9;
@@ -14,9 +14,9 @@
   --color-accent-100: #fff3e4; --color-accent-300: #facb8d; --color-accent-600: #a06f24;
   --color-accent-700: #7d5411; --color-accent-800: #5a3b0a;
 
-  --font-heading: "Cormorant Garamond", system-ui, sans-serif;
+  --font-heading: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-heading-weight: 600;
-  --font-body: "Lora", system-ui, sans-serif;
+  --font-body: var(--font-lora), "Lora", Georgia, serif;
 
   --space-1: 4.6px; --space-2: 9.2px; --space-3: 13.8px; --space-4: 18.4px; --space-6: 27.6px; --space-8: 36.8px;
   --radius-sm: 2px; --radius-md: 4px; --radius-lg: 7px;

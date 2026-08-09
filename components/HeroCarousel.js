@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HERO_SLIDES } from "@/lib/site-config";
 
@@ -38,24 +37,25 @@ export default function HeroCarousel() {
           className={`eth-hero-slide${i === index ? " eth-hero-slide-on" : ""}`}
           aria-hidden={i !== index}
         >
-          {/* Art direction, not a resize. Both are rendered and CSS hides
-              one — a display:none image is never intersected, so the browser
-              skips downloading it. That is also why neither carries
-              `priority`: it would preload the desktop file onto phones. */}
-          <Image
-            src={slide.image}
-            alt=""
-            fill
-            sizes="100vw"
-            className="eth-hero-img eth-hero-img-lg"
-          />
-          <Image
-            src={slide.mobileImage ?? slide.image}
-            alt=""
-            fill
-            sizes="100vw"
-            className="eth-hero-img eth-hero-img-sm"
-          />
+          {/* A native <picture> rather than next/image: the browser picks one
+              source and downloads only that, so the first slide can be
+              eager + high priority without risking the desktop file being
+              pulled onto a phone. These are already right-sized webp
+              (~190-320KB), so the optimizer round-trip bought little. */}
+          <picture>
+            <source
+              media="(max-width: 900px)"
+              srcSet={slide.mobileImage ?? slide.image}
+            />
+            <img
+              className="eth-hero-img"
+              src={slide.image}
+              alt=""
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "high" : "auto"}
+              decoding="async"
+            />
+          </picture>
           <div className="eth-hero-scrim" />
           <div className="eth-hero-copy">
             <span className="eth-eyebrow">{slide.eyebrow}</span>

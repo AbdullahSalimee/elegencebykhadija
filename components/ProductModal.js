@@ -111,6 +111,7 @@ export default function ProductModal() {
             <ProductPhoto
               product={p}
               className="pm-photo"
+              sizes="(max-width: 900px) 100vw, 450px"
               style={{ minHeight: 380 }}
               label={`${p.name} — full product photo`}
             />
@@ -275,7 +276,11 @@ export default function ProductModal() {
                       openProduct(r.id);
                     }}
                   >
-                    <ProductPhoto product={r} className="pm-related-photo" />
+                    <ProductPhoto
+                      product={r}
+                      className="pm-related-photo"
+                      sizes="44vw"
+                    />
                     <span className="pm-related-name">{r.name}</span>
                     <span className="pm-related-price">
                       Rs. {r.price.toLocaleString()}

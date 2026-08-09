@@ -75,6 +75,7 @@ export default function CartDrawer() {
                   >
                     <ProductPhoto
                       product={line.product}
+                      sizes="64px"
                       style={{ width: 64, height: 64 }}
                       label={line.product?.name}
                     />

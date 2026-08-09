@@ -6,7 +6,7 @@ export default function ProductRow({ product: p }) {
   const { openProduct } = useCart();
   return (
     <div className="product-row" onClick={() => openProduct(p.id)}>
-      <ProductPhoto product={p} className="product-row-photo" />
+      <ProductPhoto product={p} className="product-row-photo" sizes="140px" />
       <div className="product-row-body">
         <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
           {p.colors.map((c) => (

@@ -15,7 +15,7 @@
   --eth-bg: #ffffff;
   --eth-soft: #f6f4f1;
   --eth-sale: #a8322a;
-  --eth-font: "Jost", "Helvetica Neue", Arial, sans-serif;
+  --eth-font: var(--font-jost), "Jost", "Helvetica Neue", Arial, sans-serif;
   --eth-max: 1400px;
   --eth-pad: 40px;
 }
@@ -301,9 +301,17 @@
 .eth-hero-slide-on .eth-hero-img {
   animation: ethSettle var(--eth-slide-ms, 6500ms) ease-out both;
 }
-.eth-hero-img { object-fit: cover; object-position: center 22%; }
-/* Desktop is the default; the portrait crop takes over below 900px. */
-.eth-hero-img-sm { display: none; }
+/* Fills its slide. These were inline styles when this went through
+   next/image; the <picture> that replaced it needs them here. The portrait
+   source is chosen by the <source media> rule, not by CSS. */
+.eth-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
 .eth-hero-scrim {
   position: absolute;
   inset: 0;
@@ -1186,8 +1194,6 @@
   /* Was 66vh — too short to carry a full-length shot, and the tight crop
      left no room between the chrome and the copy. */
   .eth-hero { height: clamp(560px, 86vh, 780px); }
-  .eth-hero-img-lg { display: none; }
-  .eth-hero-img-sm { display: block; }
   /* Centred: these portrait frames have headroom above the model, so the
      chrome lands on background and her feet still clear the bottom. */
   .eth-hero-img { object-position: center; }
