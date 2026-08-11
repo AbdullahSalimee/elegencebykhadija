@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/admin-auth';
 import {
-  upsertContent,
+  updateContent,
   deleteContent,
   updateChildLink,
   deleteChildLink,
@@ -27,9 +27,11 @@ export async function PATCH(request, { params }) {
     if (LINK_TABLES.has(table)) {
       await updateChildLink(table, id, body);
     } else {
-      // The id comes from the URL, never the body — so a PATCH can't rename a
-      // row onto a different primary key and silently create a second one.
-      await upsertContent(table, { ...body, id });
+      // The id comes from the URL, and any id in the body is dropped — so a
+      // PATCH can't rename a row onto a different primary key and silently
+      // create a second one.
+      const { id: _ignored, ...fields } = body;
+      await updateContent(table, id, fields);
     }
     revalidateTag('site-content');
     return NextResponse.json({ ok: true });
