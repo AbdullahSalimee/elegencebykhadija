@@ -1,26 +1,33 @@
 # Elegance by Khadija — Next.js storefront
 
 A Next.js (App Router) storefront backed by Supabase: home, product quick-view, cart drawer,
-checkout with Cash on Delivery / JazzCash / Easypaisa, customer accounts with order tracking, and
-an admin console for stock, orders, and nav/category settings.
+checkout with Cash on Delivery / JazzCash / Easypaisa, customer accounts with order tracking, and a
+password-protected admin console for stock, orders, site content and nav/category settings.
 
 ## Set up Supabase (required — the app won't build or run without this)
 
 1. Create a free project at [supabase.com](https://supabase.com).
 2. In the SQL Editor, run, in order: `supabase/migrations/0001_init.sql`,
-   `supabase/migrations/0002_storage.sql`, `supabase/migrations/0003_order_tracking.sql`, then
-   `supabase/seed.sql` (seeds the same 6 products / 5 orders the app used to ship as mock data).
+   `supabase/migrations/0002_storage.sql`, `supabase/migrations/0003_order_tracking.sql`,
+   `supabase/migrations/0004_site_content.sql`, then `supabase/seed.sql` and
+   `supabase/seed_content.sql` (they seed the same products, orders and homepage content the app
+   used to ship as hand-written constants).
 3. In Project Settings → API, copy the **Project URL** and the **service_role** key.
 4. `cp .env.example .env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and
    `SUPABASE_SERVICE_ROLE_KEY`.
-
-5. Run `supabase/admin.sql`, then `supabase/auth.sql`, in that order.
+5. Set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` in the same file — the admin console is
+   unusable without them (see **Admin access** below).
+6. Run `supabase/admin.sql`, then `supabase/auth.sql`, in that order.
 
 **Already have a database from an earlier version?** Run `supabase/admin.sql` and then
 `supabase/auth.sql` — not the migrations again (re-running `0001_init.sql` aborts on
 `create table … already exists`, which is why a database set up early can be missing
 `orders.customer_email` and the tracking trigger). Both files only add what's missing, back-fill
 existing rows where it matters, and are safe to run more than once.
+
+`0004_site_content.sql` and `seed_content.sql` are the exception — both are written to be
+re-runnable (`create table if not exists`, `on conflict do nothing`), so run them on an existing
+database as-is.
 
 ```
 npm install
@@ -40,6 +47,15 @@ works without it.
   through Supabase's CDN) that admin photo uploads land in.
 - `supabase/migrations/0003_order_tracking.sql` — `order_status_history` (a trigger logs every
   status an order has ever been in — not just the current one) backing `/track`.
+- `supabase/migrations/0004_site_content.sql` — storefront content: `hero_slides`,
+  `category_tiles`, `collection_blocks`, `promo_banners`, `announcements`, `trust_items`,
+  `utility_links`, `footer_columns`/`footer_links`, `nav_columns`/`nav_column_links` (the mega
+  menu) and `shipping_regions`. All editable at `/admin/content`.
+- `lib/data/content.js` — the reader for the above. Its getters return the exact shapes the
+  components already expected, which is why the redesign's markup didn't change when this landed.
+- `lib/site-config.js` — what's left of the hand-written content: the fabric guide only. It's
+  long-form copy paired with CSS gradient strings, changes about once a season, and a textarea in
+  an admin panel is a poor place to edit either.
 - `lib/supabase/server.js` — the one server-only Supabase client (service role key — never sent
   to the browser; guarded with the `server-only` package so an accidental client import fails
   the build instead of leaking the key).
@@ -112,11 +128,49 @@ form switches to "enter your password to continue" rather than turning them away
   id from the request, so there's nothing to tamper with.
 - `/login` exists for coming back on a new device or after logging out.
 
+## Admin access
+
+`/admin` is protected by a single shared password — there's one shop owner, so an admin users
+table would mean a migration, a management screen and a reset flow for one row. Set
+`ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` (min 16 chars) in `.env.local`; generate the secret
+with:
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+The session is a 12-hour HMAC-signed httpOnly cookie carrying nothing but an expiry — no sessions
+table, and rotating `ADMIN_SESSION_SECRET` signs every admin browser out at once. Customer accounts
+(above) are a separate surface: a signed-in customer is not an admin.
+
+Two layers enforce it. `middleware.js` guards `/admin` and the write endpoints, and `requireAdmin()`
+inside each route handler catches anything a future change to the matcher might miss. The rules are
+**method-aware**, because path alone is wrong in both directions:
+
+| Endpoint | Public | Admin |
+| --- | --- | --- |
+| `/api/products`, `/api/categories`, `/api/nav-links` | `GET` | `POST` `PATCH` `DELETE` |
+| `/api/orders` | `POST` (a customer placing an order) | `GET` (everyone's orders) |
+| `/api/orders/[id]` | — | `PATCH` (status change) |
+| `/api/content/*`, `/api/uploads/*` | — | all methods |
+| `/api/auth/*`, `/api/account/*` | all (they check the customer session themselves) | — |
+
+## Editing the site without a developer
+
+`/admin/content` edits everything on the storefront that isn't a product or an order — hero
+carousel, collection blocks, category tiles, promo banners, the announcement bar, the mega menu,
+the footer. Content is cached for 10 minutes and revalidated by tag on save, so a change appears
+within a few minutes rather than on the next deploy.
+
+Images in those panels go through the same upload route as product photos: resized to fit
+1200×1500 and re-encoded to WebP before storage. A path can also be typed by hand for the
+photography that already ships in `/public`.
+
 ## Known gaps
 
-- **Admin is still unauthenticated.** `/admin/*` and its `/api/*` mutation endpoints have no login
-  — customer accounts do not cover the admin console. Worth fixing before this goes live.
 - **Payments.** COD needs no gateway. JazzCash and Easypaisa are selectable at checkout but are
   settled manually today — wire the real gateways once the merchant account is approved (hosted
   checkout redirect + server-side signature + a webhook that flips `pending → paid`). Never trust
   the browser redirect alone; always verify server-side.
+- **One admin password, no audit trail.** Fine for a single owner; if staff ever get access, this
+  wants real accounts so changes can be attributed.

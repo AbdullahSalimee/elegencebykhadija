@@ -207,15 +207,17 @@ export default function NavClient({
                           ))}
                         </div>
                       ))}
-                      <a className="eth-mega-feature" href={item.panel.feature.href}>
-                        <span className="eth-mega-feature-eyebrow">
-                          {item.panel.feature.eyebrow}
-                        </span>
-                        <span className="eth-mega-feature-title">
-                          {item.panel.feature.title}
-                        </span>
-                        <span className="eth-mega-feature-cta">Shop now →</span>
-                      </a>
+                      {item.panel.feature && (
+                        <a className="eth-mega-feature" href={item.panel.feature.href}>
+                          <span className="eth-mega-feature-eyebrow">
+                            {item.panel.feature.eyebrow}
+                          </span>
+                          <span className="eth-mega-feature-title">
+                            {item.panel.feature.title}
+                          </span>
+                          <span className="eth-mega-feature-cta">Shop now →</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}

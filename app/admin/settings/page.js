@@ -91,8 +91,8 @@ export default function AdminSettings() {
       </h1>
       <p style={{ opacity: 0.7, marginBottom: 24, maxWidth: "65ch" }}>
         Controls what shows in the storefront's top nav bar, and the categories
-        available when tagging a product. Edits here are local to this session;
-        connect a real API to persist.
+        available when tagging a product. Changes save as you type. For the
+        mega menu panels, banners and footer, see Homepage &amp; Content.
       </p>
 
       <div
