@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { uploadProductImage } from '@/lib/data/storage';
+import { requireAdmin } from '@/lib/admin-auth';
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB — generous for a phone photo, rejects anything absurd
 const MAX_WIDTH = 1200;
@@ -12,6 +13,9 @@ const MAX_HEIGHT = 1500; // checklist target: 800x1000–1200x1500 for product i
 // storage, so "upload a multi-megabyte photo" can't happen no matter what
 // the admin picks on their end.
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const formData = await request.formData();
   const file = formData.get('file');
   if (!file || typeof file === 'string') {

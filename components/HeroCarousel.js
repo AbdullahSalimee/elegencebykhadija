@@ -1,17 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { HERO_SLIDES } from "@/lib/site-config";
 
 // How long each slide holds. Also drives the push-in animation via a custom
 // property, so the zoom finishes exactly as the slide changes — tune this
 // one number and the motion stays in step.
 const SLIDE_MS = 3000;
 
-export default function HeroCarousel() {
+// Slides come from the database via app/page.js, so the shop owner can change
+// the hero photography and copy from the admin without a redeploy.
+export default function HeroCarousel({ slides = [] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const count = HERO_SLIDES.length;
+  const count = slides.length;
 
   const go = (next) => setIndex(((next % count) + count) % count);
 
@@ -22,6 +23,10 @@ export default function HeroCarousel() {
     return () => clearInterval(id);
   }, [count, paused, index]);
 
+  // With every slide deactivated in the admin there is no hero to show, and an
+  // empty <section> would still hold its full viewport height open.
+  if (!count) return null;
+
   return (
     <section
       className="eth-hero"
@@ -31,7 +36,7 @@ export default function HeroCarousel() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {HERO_SLIDES.map((slide, i) => (
+      {slides.map((slide, i) => (
         <div
           key={slide.id}
           className={`eth-hero-slide${i === index ? " eth-hero-slide-on" : ""}`}
@@ -61,13 +66,17 @@ export default function HeroCarousel() {
             <span className="eth-eyebrow">{slide.eyebrow}</span>
             <h1 className="eth-hero-title">{slide.title}</h1>
             <p className="eth-hero-body">{slide.body}</p>
-            <a
-              className="eth-btn eth-btn-light"
-              href={slide.cta.href}
-              tabIndex={i === index ? 0 : -1}
-            >
-              {slide.cta.label}
-            </a>
+            {/* The button is optional — a slide can be pure editorial with no
+                destination, in which case the admin leaves the CTA blank. */}
+            {slide.cta && (
+              <a
+                className="eth-btn eth-btn-light"
+                href={slide.cta.href}
+                tabIndex={i === index ? 0 : -1}
+              >
+                {slide.cta.label}
+              </a>
+            )}
           </div>
         </div>
       ))}
@@ -89,7 +98,7 @@ export default function HeroCarousel() {
             <ChevronRight size={22} strokeWidth={1.6} />
           </button>
           <div className="eth-hero-dots">
-            {HERO_SLIDES.map((slide, i) => (
+            {slides.map((slide, i) => (
               <button
                 key={slide.id}
                 className={`eth-hero-dot${i === index ? " eth-hero-dot-on" : ""}`}

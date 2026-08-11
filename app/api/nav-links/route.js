@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { getNavLinks, createNavLink } from '@/lib/data/site-config';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export async function GET() {
   try {
@@ -12,6 +13,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const body = await request.json();
   if (!body?.id || !body?.label) {
     return NextResponse.json({ error: 'invalid_nav_link' }, { status: 400 });

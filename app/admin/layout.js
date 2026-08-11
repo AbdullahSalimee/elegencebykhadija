@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Shirt,
   ClipboardList,
   Settings,
+  Images,
   ArrowLeft,
+  LogOut,
   Menu,
   X,
 } from "lucide-react";
@@ -37,6 +39,7 @@ const NAV = [
   {
     group: "Site",
     items: [
+      { href: "/admin/content", label: "Homepage & Content", icon: Images },
       {
         href: "/admin/settings",
         label: "Navigation & Categories",
@@ -48,7 +51,14 @@ const NAV = [
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sideOpen, setSideOpen] = useState(false);
+
+  const logout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
+    router.replace("/admin/login");
+    router.refresh();
+  };
 
   const isActive = (item) =>
     item.exact ? pathname === item.href : pathname?.startsWith(item.href);
@@ -56,6 +66,12 @@ export default function AdminLayout({ children }) {
   // The sidebar is a drawer on small screens: close it on navigation,
   // on Escape, and lock the page behind it while it is open.
   useEffect(() => setSideOpen(false), [pathname]);
+
+  // The login page lives under /admin so the middleware's path rules stay
+  // simple, but it must not render the console shell around itself — the
+  // sidebar links would be visible to someone who hasn't signed in yet.
+  const isLoginPage = pathname === "/admin/login";
+
   useEffect(() => {
     if (!sideOpen) return;
     const prev = document.body.style.overflow;
@@ -67,6 +83,10 @@ export default function AdminLayout({ children }) {
       window.removeEventListener("keydown", onKey);
     };
   }, [sideOpen]);
+
+  // After the hooks, never before — an early return above them would change
+  // the hook count between routes and break the rules of hooks.
+  if (isLoginPage) return children;
 
   return (
     <div className="admin-shell">
@@ -114,6 +134,10 @@ export default function AdminLayout({ children }) {
             <ArrowLeft size={14} strokeWidth={1.8} />
             Back to storefront
           </Link>
+          <button className="admin-back-link" onClick={logout}>
+            <LogOut size={14} strokeWidth={1.8} />
+            Log out
+          </button>
         </div>
       </aside>
 

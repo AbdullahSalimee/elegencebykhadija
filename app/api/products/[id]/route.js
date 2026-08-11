@@ -6,6 +6,7 @@ import {
   updateVariantStock,
   deleteProduct,
 } from '@/lib/data/products';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export async function GET(_request, { params }) {
   try {
@@ -20,6 +21,9 @@ export async function GET(_request, { params }) {
 // PATCH body: { price?, category?, image?, variantStock?: { variantId, stock } }
 // Covers all admin edit affordances (price, category, photo, per-colour stock).
 export async function PATCH(request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const body = await request.json();
   try {
     const fields = {};
@@ -38,6 +42,9 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     await deleteProduct(params.id);
     revalidateTag('products');

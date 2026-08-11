@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getProducts, createProduct } from '@/lib/data/products';
 import { revalidateTag } from 'next/cache';
+import { requireAdmin } from '@/lib/admin-auth';
 
 // GET /api/products?category=lawn,silk&fabric=Lawn&pieces=2%20Piece&maxPrice=8000
 //     &onSale=1&inStock=1&sort=newest&page=1&pageSize=24
@@ -39,6 +40,9 @@ export async function GET(request) {
 
 // POST — admin "Add Product" (app/admin/products/page.js)
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const body = await request.json();
   if (!body?.id || !body?.name) {
     return NextResponse.json({ error: 'invalid_product' }, { status: 400 });

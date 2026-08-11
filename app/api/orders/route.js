@@ -3,10 +3,16 @@ import { revalidateTag } from 'next/cache';
 import { getOrders, placeOrder, getOrderById } from '@/lib/data/orders';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import { getSessionCustomer } from '@/lib/auth';
+import { requireAdmin } from '@/lib/admin-auth';
 import { updateCustomer } from '@/lib/data/customers';
 
-// GET — admin order list (app/admin/orders/page.js via useOrders())
+// GET — admin order list (app/admin/orders/page.js via useOrders()).
+// Admin-only: this returns every customer's name, phone, email and address.
+// A customer reading their own orders uses /api/account/orders instead.
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const orders = await getOrders();
     return NextResponse.json({ orders });

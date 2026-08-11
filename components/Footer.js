@@ -1,11 +1,16 @@
 import Image from "next/image";
-import { FOOTER_COLUMNS, REGIONS } from "@/lib/site-config";
+import { getFooterColumns, getShippingRegions } from "@/lib/data/content";
 
 // lucide dropped its brand glyphs, so these stay as wordmarks rather than
 // approximated SVG paths. Swap in real brand marks when they're supplied.
 const SOCIALS = ["Facebook", "Instagram", "YouTube"];
 
-export default function Footer() {
+export default async function Footer() {
+  const [columns, regions] = await Promise.all([
+    getFooterColumns(),
+    getShippingRegions(),
+  ]);
+
   return (
     <footer className="eth-footer">
       <div className="eth-footer-cols">
@@ -35,7 +40,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {FOOTER_COLUMNS.map((col) => (
+        {columns.map((col) => (
           <div key={col.id} className="eth-footer-col">
             <div className="eth-footer-heading">{col.heading}</div>
             {col.links.map((link) => (
@@ -65,14 +70,16 @@ export default function Footer() {
           />
           <span>ELEGANCE by Khadija © 2026. All rights reserved.</span>
         </div>
-        <label className="eth-region">
-          <span className="eth-region-label">Ship to</span>
-          <select className="eth-region-select" defaultValue={REGIONS[0]}>
-            {REGIONS.map((region) => (
-              <option key={region}>{region}</option>
-            ))}
-          </select>
-        </label>
+        {regions.length > 0 && (
+          <label className="eth-region">
+            <span className="eth-region-label">Ship to</span>
+            <select className="eth-region-select" defaultValue={regions[0].label}>
+              {regions.map((region) => (
+                <option key={region.id}>{region.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
     </footer>
   );
