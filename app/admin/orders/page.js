@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
-import { ORDERS as SEED, STATUSES, orderTotal } from "@/lib/orders";
+import { STATUSES, orderTotal } from "@/lib/orders";
+import { useOrders, apiUpdateOrderStatus } from "@/hooks/useOrders";
 import { Search, ChevronDown } from "lucide-react";
 
 export default function AdminOrders() {
-  const [orders, setOrders] = useState(SEED);
+  const { orders, mutate } = useOrders();
   const [filter, setFilter] = useState("all");
   const [channelFilter, setChannelFilter] = useState("all");
   const [query, setQuery] = useState("");
 
-  const setStatus = (id, status) =>
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+  const setStatus = (id, status) => {
+    mutate({ orders: orders.map((o) => (o.id === id ? { ...o, status } : o)) }, false);
+    apiUpdateOrderStatus(id, status).then(() => mutate());
+  };
 
   const initials = (name) =>
     name

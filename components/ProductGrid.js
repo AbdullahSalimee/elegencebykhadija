@@ -1,32 +1,17 @@
-'use client';
-import { PRODUCTS } from '@/lib/products';
-import { useCart } from '@/lib/cart-context';
-import ProductPhoto from '@/components/ProductPhoto';
+import { getProducts } from '@/lib/data/products';
+import ProductCard from '@/components/ProductCard';
 
-export default function ProductGrid() {
-  const { openProduct } = useCart();
+export default async function ProductGrid() {
+  const { products } = await getProducts({ sort: 'newest', pageSize: 6 });
   return (
     <div id="products-anchor" className="section">
       <div className="section-head">
         <h2 className="section-title">Unstitched Suits</h2>
         <a href="/shop" style={{ fontSize: 13 }}>View all →</a>
       </div>
-      <div className="product-grid">
-        {PRODUCTS.slice(0, 6).map((p) => (
-          <div key={p.id} className="card" style={{ cursor: 'pointer', padding: 0, border: 'none' }} onClick={() => openProduct(p.id)}>
-            <ProductPhoto product={p} className="product-photo" />
-            <div style={{ padding: '6px 2px' }}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                {p.colors.map((c) => <span key={c.id} className="swatch" style={{ background: c.hex }} />)}
-              </div>
-              <div className="card-title">{p.name}</div>
-              <div className="card-meta">{p.fabric} · {p.pieces}</div>
-              <div style={{ marginTop: 6, fontSize: 15 }}>
-                {p.compareAt && <span style={{ textDecoration: 'line-through', opacity: .5, marginRight: 8 }}>Rs. {p.compareAt.toLocaleString()}</span>}
-                <span style={{ color: 'var(--color-accent-700)', fontWeight: 600 }}>Rs. {p.price.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
+      <div className="eth-grid">
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} />
         ))}
       </div>
     </div>

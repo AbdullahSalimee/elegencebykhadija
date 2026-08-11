@@ -1,7 +1,8 @@
-"use client";
-import { PRODUCTS } from "@/lib/products";
-import { ORDERS, STATUSES, orderTotal } from "@/lib/orders";
+import { getOrders } from "@/lib/data/orders";
+import { STATUSES, orderTotal } from "@/lib/orders";
 import { Wallet, ClipboardList, TrendingUp, TriangleAlert } from "lucide-react";
+
+export const revalidate = 60;
 
 const STATUS_COLOR = {
   pending: "#b68235",
@@ -32,33 +33,34 @@ function topProducts(orders) {
   return Object.entries(map).sort(([, a], [, b]) => b - a);
 }
 
-export default function AdminDashboard() {
-  const revenue = ORDERS.filter((o) => o.status !== "returned").reduce(
+export default async function AdminDashboard() {
+  const orders = await getOrders();
+  const revenue = orders.filter((o) => o.status !== "returned").reduce(
     (s, o) => s + orderTotal(o),
     0,
   );
   const avgOrder = Math.round(
-    revenue / Math.max(1, ORDERS.filter((o) => o.status !== "returned").length),
+    revenue / Math.max(1, orders.filter((o) => o.status !== "returned").length),
   );
-  const returnedCount = ORDERS.filter((o) => o.status === "returned").length;
-  const returnRate = Math.round((returnedCount / ORDERS.length) * 100);
+  const returnedCount = orders.filter((o) => o.status === "returned").length;
+  const returnRate = Math.round((returnedCount / orders.length) * 100);
 
-  const trend = revenueByDay(ORDERS);
+  const trend = revenueByDay(orders);
   const maxDay = Math.max(...trend.map(([, v]) => v), 1);
 
   const statusCounts = STATUSES.map((s) => ({
     status: s,
-    count: ORDERS.filter((o) => o.status === s).length,
+    count: orders.filter((o) => o.status === s).length,
   }));
   const maxStatus = Math.max(...statusCounts.map((s) => s.count), 1);
 
   const channelCounts = {
-    website: ORDERS.filter((o) => o.channel === "website").length,
-    whatsapp: ORDERS.filter((o) => o.channel === "whatsapp").length,
+    website: orders.filter((o) => o.channel === "website").length,
+    whatsapp: orders.filter((o) => o.channel === "whatsapp").length,
   };
   const totalChannel = channelCounts.website + channelCounts.whatsapp;
 
-  const top = topProducts(ORDERS);
+  const top = topProducts(orders);
 
   const cards = [
     {
@@ -72,12 +74,12 @@ export default function AdminDashboard() {
       label: "Avg. order value",
       value: "Rs. " + avgOrder.toLocaleString(),
       icon: TrendingUp,
-      delta: `Across ${ORDERS.length} orders`,
+      delta: `Across ${orders.length} orders`,
       deltaClass: "flat",
     },
     {
       label: "Orders, all time",
-      value: ORDERS.length,
+      value: orders.length,
       icon: ClipboardList,
       delta: `${statusCounts.find((s) => s.status === "pending")?.count || 0} pending`,
       deltaClass: "down",

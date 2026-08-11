@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Hero() {
   return (
     <>
@@ -13,7 +15,16 @@ export default function Hero() {
             <button className="btn btn-secondary">Fabric Guide</button>
           </div>
         </div>
-        <div className="plate ph hero-photo"><img src="/hero1.webp" alt="hero photograph — model in unstitched lawn suit, studio" /> </div>
+        <div className="plate ph hero-photo" style={{ position: "relative" }}>
+          <Image
+            src="/hero1.webp"
+            alt="hero photograph — model in unstitched lawn suit, studio"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 50vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
       </div>
       <div className="hr section-rule" />
     </>

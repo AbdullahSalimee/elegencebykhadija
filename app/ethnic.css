@@ -839,6 +839,33 @@
 .eth-drawer-panel .eth-mega-heading { margin: 10px 0 4px; color: var(--eth-muted); }
 .eth-drawer-panel a { border: 0; font-family: var(--font-body); font-size: 13.5px; padding: 7px 0; }
 .eth-drawer-accent { color: var(--eth-sale) !important; }
+/* Account + order links in the phone drawer, so everything reachable from the
+   desktop account flyout is reachable here too. Sits between the categories
+   and the utility row, and reads as primary — the utility links below it are
+   the quieter ones. */
+.eth-drawer-account {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-divider);
+}
+.eth-drawer-account a,
+.eth-drawer-account button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0 !important;
+  font-family: var(--eth-font) !important;
+  font-size: 12px !important;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+  padding: 8px 0 !important;
+}
 .eth-drawer-utility {
   display: flex;
   flex-direction: column;

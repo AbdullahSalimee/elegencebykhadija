@@ -1,7 +1,13 @@
 "use client";
-import { useState } from "react";
-import { PRODUCTS as SEED } from "@/lib/products";
-import { CATEGORIES } from "@/lib/site-config";
+import { useEffect, useRef, useState } from "react";
+import {
+  useProducts,
+  apiCreateProduct,
+  apiPatchProduct,
+  apiDeleteProduct,
+  apiUploadProductImage,
+} from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useSiteConfig";
 import { Search, Plus, X, Trash2, ImagePlus } from "lucide-react";
 
 const BLANK_COLOR = () => ({
@@ -22,67 +28,66 @@ const BLANK_PRODUCT = () => ({
   colors: [BLANK_COLOR()],
 });
 
-// Client-side only (no persistence) — wire onSave to POST /api/products once the backend
-// exists. The image field should become a real upload (S3/Cloudinary/etc.) that returns a
-// URL to store on the product row, rather than the data URL used here for the session-only demo.
+// Local state is seeded from the DB once (see the hydration effect below)
+// so every keystroke stays instant; each handler also persists via the
+// /api/products endpoints. Photos upload to Supabase Storage
+// (app/api/uploads/product-image, resized + converted to WebP by sharp) —
+// the preview swaps from a local object URL to the real CDN URL once that
+// finishes.
 export default function AdminProducts() {
-  const [products, setProducts] = useState(
-    SEED.map((p) => ({
-      ...p,
-      category: p.category || "lawn",
-      image: p.image || null,
-    })),
-  );
+  const { products: dbProducts, isLoading: productsLoading, mutate: mutateProducts } = useProducts({
+    pageSize: 500,
+  });
+  const { categories } = useCategories();
+  const [products, setProducts] = useState([]);
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (!productsLoading && !hydrated.current) {
+      setProducts(dbProducts.map((p) => ({ ...p, category: p.category || "lawn", image: p.image || null })));
+      hydrated.current = true;
+    }
+  }, [productsLoading, dbProducts]);
+
   const [query, setQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [draft, setDraft] = useState(BLANK_PRODUCT());
 
   const updateStock = (productId, colorId, value) => {
+    const stock = Math.max(0, Number(value) || 0);
     setProducts((prev) =>
       prev.map((p) =>
         p.id !== productId
           ? p
-          : {
-              ...p,
-              colors: p.colors.map((c) =>
-                c.id !== colorId
-                  ? c
-                  : { ...c, stock: Math.max(0, Number(value) || 0) },
-              ),
-            },
+          : { ...p, colors: p.colors.map((c) => (c.id !== colorId ? c : { ...c, stock })) },
       ),
     );
+    apiPatchProduct(productId, { variantStock: { variantId: colorId, stock } }).then(() => mutateProducts());
   };
   const updatePrice = (productId, value) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id !== productId
-          ? p
-          : { ...p, price: Math.max(0, Number(value) || 0) },
-      ),
-    );
+    const price = Math.max(0, Number(value) || 0);
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, price })));
+    apiPatchProduct(productId, { price }).then(() => mutateProducts());
   };
   const updateCategory = (productId, category) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id !== productId ? p : { ...p, category })),
-    );
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, category })));
+    apiPatchProduct(productId, { category }).then(() => mutateProducts());
   };
   const removeProduct = (productId) => {
-    if (!confirm("Remove this product? This only affects this session."))
-      return;
+    if (!confirm("Remove this product? This can't be undone.")) return;
     setProducts((prev) => prev.filter((p) => p.id !== productId));
+    apiDeleteProduct(productId).then(() => mutateProducts());
   };
 
   const replaceProductImage = (productId, file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id !== productId ? p : { ...p, image: reader.result },
-        ),
-      );
-    reader.readAsDataURL(file);
+    // Instant local preview (no network wait) while the real upload — which
+    // resizes + converts to WebP server-side — happens in the background.
+    const previewUrl = URL.createObjectURL(file);
+    setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, image: previewUrl })));
+    apiUploadProductImage(file).then(({ url }) => {
+      setProducts((prev) => prev.map((p) => (p.id !== productId ? p : { ...p, image: url })));
+      apiPatchProduct(productId, { image: url }).then(() => mutateProducts());
+    });
   };
 
   const openAddModal = () => {
@@ -109,23 +114,28 @@ export default function AdminProducts() {
       ),
     }));
 
+  const [draftImageUploading, setDraftImageUploading] = useState(false);
   const setDraftImage = (file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setDraft((d) => ({ ...d, image: reader.result }));
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setDraft((d) => ({ ...d, image: previewUrl }));
+    setDraftImageUploading(true);
+    apiUploadProductImage(file)
+      .then(({ url }) => setDraft((d) => ({ ...d, image: url })))
+      .finally(() => setDraftImageUploading(false));
   };
   const clearDraftImage = () => setDraft((d) => ({ ...d, image: null }));
 
   const saveDraft = () => {
-    if (!draft.name.trim()) return;
-    // TODO real backend: POST /api/products (multipart or presigned upload for the image),
-    // insert product + variant rows, store the returned image URL on the product row.
-    setProducts((prev) => [
-      { ...draft, price: Number(draft.price) || 0 },
-      ...prev,
-    ]);
+    if (!draft.name.trim() || draftImageUploading) return;
+    // Guard against saving a browser-local blob: URL if this ever runs
+    // before an in-flight upload resolves — the disabled-button check above
+    // should already prevent it, this is just a second line of defense.
+    const image = draft.image?.startsWith("blob:") ? null : draft.image;
+    const toSave = { ...draft, image, price: Number(draft.price) || 0 };
+    setProducts((prev) => [toSave, ...prev]);
     setShowAddModal(false);
+    apiCreateProduct(toSave).then(() => mutateProducts());
   };
 
   const visible = products.filter(
@@ -241,7 +251,7 @@ export default function AdminProducts() {
                       value={p.category}
                       onChange={(e) => updateCategory(p.id, e.target.value)}
                     >
-                      {CATEGORIES.map((c) => (
+                      {categories.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.label}
                         </option>
@@ -468,7 +478,7 @@ export default function AdminProducts() {
                       setDraft({ ...draft, category: e.target.value })
                     }
                   >
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
                       </option>
@@ -571,9 +581,9 @@ export default function AdminProducts() {
                 <button
                   className="btn btn-primary"
                   onClick={saveDraft}
-                  disabled={!draft.name.trim()}
+                  disabled={!draft.name.trim() || draftImageUploading}
                 >
-                  Add Product
+                  {draftImageUploading ? "Uploading photo…" : "Add Product"}
                 </button>
               </div>
             </div>

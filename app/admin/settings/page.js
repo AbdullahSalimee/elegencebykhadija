@@ -1,9 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  NAV_LINKS as SEED_LINKS,
-  CATEGORIES as SEED_CATEGORIES,
-} from "@/lib/site-config";
+  useNavLinks,
+  useCategories as useCategoriesData,
+  apiCreateNavLink,
+  apiUpdateNavLink,
+  apiDeleteNavLink,
+  apiCreateCategory,
+  apiUpdateCategory,
+  apiDeleteCategory,
+} from "@/hooks/useSiteConfig";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 
 const BLANK_LINK = () => ({
@@ -17,28 +23,65 @@ const BLANK_CATEGORY = () => ({
   label: "",
 });
 
-// Client-side only (no persistence) — wire onSave to PATCH /api/site-config once the
-// backend exists. Keep this as the single source of truth for Nav.js and category filters.
+// Local state seeded from the DB (via the hooks below) so every keystroke is
+// instant; each change also fires the matching API call to persist it and
+// keep Nav.js / the shop's category filters in sync for everyone else.
 export default function AdminSettings() {
-  const [links, setLinks] = useState(SEED_LINKS);
-  const [categories, setCategories] = useState(SEED_CATEGORIES);
+  const { navLinks, isLoading: linksLoading, mutate: mutateLinks } = useNavLinks();
+  const { categories: dbCategories, isLoading: categoriesLoading, mutate: mutateCategories } = useCategoriesData();
+  const [links, setLinks] = useState([]);
+  const [categories, setCategories] = useState([]);
 
+  // Hydrate local editable state from the DB exactly once, on first load —
+  // not on every later refetch, which would otherwise wipe out an in-progress
+  // draft row (e.g. a second "Add link" click) that hasn't been given a
+  // label yet and so was never persisted server-side.
+  const linksHydrated = useRef(false);
+  const categoriesHydrated = useRef(false);
+  useEffect(() => {
+    if (!linksLoading && !linksHydrated.current) {
+      setLinks(navLinks);
+      linksHydrated.current = true;
+    }
+  }, [linksLoading, navLinks]);
+  useEffect(() => {
+    if (!categoriesLoading && !categoriesHydrated.current) {
+      setCategories(dbCategories);
+      categoriesHydrated.current = true;
+    }
+  }, [categoriesLoading, dbCategories]);
+
+  // "Add" only creates a local draft row (same as before — you can start
+  // typing before anything hits the network). The API create call fires the
+  // first time that draft gets a real label; every edit after that point
+  // (once the row exists server-side) is a PATCH instead.
   const addLink = () => setLinks((prev) => [...prev, BLANK_LINK()]);
-  const updateLink = (id, field, value) =>
-    setLinks((prev) =>
-      prev.map((l) => (l.id !== id ? l : { ...l, [field]: value })),
-    );
-  const removeLink = (id) =>
+  const updateLink = (id, field, value) => {
+    const current = links.find((l) => l.id === id);
+    const next = { ...current, [field]: value };
+    setLinks((prev) => prev.map((l) => (l.id !== id ? l : next)));
+    if (!next.label?.trim()) return;
+    const persisted = navLinks.some((l) => l.id === id);
+    const action = persisted ? apiUpdateNavLink(id, { [field]: value }) : apiCreateNavLink(next);
+    action.then(() => mutateLinks());
+  };
+  const removeLink = (id) => {
     setLinks((prev) => prev.filter((l) => l.id !== id));
+    apiDeleteNavLink(id).then(() => mutateLinks());
+  };
 
-  const addCategory = () =>
-    setCategories((prev) => [...prev, BLANK_CATEGORY()]);
-  const updateCategory = (id, value) =>
-    setCategories((prev) =>
-      prev.map((c) => (c.id !== id ? c : { ...c, label: value })),
-    );
-  const removeCategory = (id) =>
+  const addCategory = () => setCategories((prev) => [...prev, BLANK_CATEGORY()]);
+  const updateCategory = (id, value) => {
+    setCategories((prev) => prev.map((c) => (c.id !== id ? c : { ...c, label: value })));
+    if (!value?.trim()) return;
+    const persisted = dbCategories.some((c) => c.id === id);
+    const action = persisted ? apiUpdateCategory(id, value) : apiCreateCategory({ id, label: value });
+    action.then(() => mutateCategories());
+  };
+  const removeCategory = (id) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));
+    apiDeleteCategory(id).then(() => mutateCategories());
+  };
 
   return (
     <div>

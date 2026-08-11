@@ -10,12 +10,23 @@ export default function CartDrawer() {
     cartLines,
     cartCount,
     cartSubtotal,
+    cartIssues,
     incLine,
     decLine,
     removeLine,
     openCheckout,
   } = useCart();
   if (!cartOpen) return null;
+
+  // Anything the database would reject — sold out, gone from the catalogue, or
+  // more than we actually have — is called out on the line itself, and blocks
+  // checkout until it's removed.
+  const issueText = (line) => {
+    if (line.issue === "unavailable") return "No longer available";
+    if (line.issue === "out_of_stock") return "Out of stock";
+    if (line.issue === "insufficient") return `Only ${line.stock} left`;
+    return null;
+  };
   return (
     <div
       className="dialog-backdrop"
@@ -86,6 +97,11 @@ export default function CartDrawer() {
                       <div style={{ fontSize: 12, opacity: 0.65 }}>
                         {line.color?.label}
                       </div>
+                      {issueText(line) && (
+                        <div style={{ fontSize: 11.5, color: "#8f2f3a", marginTop: 2 }}>
+                          {issueText(line)}
+                        </div>
+                      )}
                       <div
                         style={{
                           display: "flex",
@@ -140,9 +156,15 @@ export default function CartDrawer() {
                   Rs. {cartSubtotal.toLocaleString()}
                 </span>
               </div>
+              {cartIssues.length > 0 && (
+                <div style={{ fontSize: 12.5, color: "#8f2f3a", marginBottom: 8 }}>
+                  Remove the {cartIssues.length === 1 ? "item" : "items"} marked above to check out.
+                </div>
+              )}
               <button
                 className="btn btn-primary btn-block"
                 onClick={openCheckout}
+                disabled={cartIssues.length > 0}
               >
                 Proceed to Checkout
               </button>

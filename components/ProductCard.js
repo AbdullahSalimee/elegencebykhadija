@@ -1,11 +1,19 @@
 "use client";
 import ProductPhoto from "@/components/ProductPhoto";
+import { useCart } from "@/lib/cart-context";
 
 // The single article card for the whole storefront — homepage rails, shop,
 // new in and sale all render this, so a change to the card is a change
 // everywhere. `badge` overrides the automatic discount flag; `note` replaces
 // the "fabric · pieces" line.
-export default function ProductCard({ product: p, onOpen, badge, note }) {
+//
+// The open handler comes from the cart context rather than a prop so that
+// Server Components (ProductGrid) can render the card directly — a server
+// parent has no function to hand down. This leaf is the only "use client"
+// boundary in an otherwise static grid.
+export default function ProductCard({ product: p, badge, note }) {
+  const { openProduct } = useCart();
+
   const off =
     p.compareAt && p.compareAt > p.price
       ? Math.round(((p.compareAt - p.price) / p.compareAt) * 100)
@@ -16,7 +24,7 @@ export default function ProductCard({ product: p, onOpen, badge, note }) {
     <article className="eth-card">
       <button
         className="eth-card-photo"
-        onClick={() => onOpen(p.id)}
+        onClick={() => openProduct(p.id)}
         aria-label={`Quick view — ${p.name}`}
       >
         <ProductPhoto product={p} className="eth-card-plate" />

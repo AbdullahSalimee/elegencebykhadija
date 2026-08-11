@@ -2,17 +2,18 @@
 import { useState } from "react";
 import Image from "next/image";
 
-// Product photography, by filename convention: drop an image named after the
-// product id into public/products/ (zarnaab.webp) and it appears everywhere
-// that product is rendered — grids, rows, modal, cart. No matching file and the
-// striped placeholder stays exactly as it was, so a half-photographed catalogue
-// still demos cleanly.
+// Product photography, tried in preference order:
+//   1. product.image — the URL stored in the database, which is what the
+//      admin's image upload writes. Real catalogue data wins.
+//   2. public/products/<id>.<ext> — the filename convention the storefront was
+//      built on, kept so seeded and demo products keep their photography
+//      without needing a re-upload through the admin.
+//   3. the striped text placeholder, so a half-photographed catalogue still
+//      renders cleanly.
 //
 // Extensions are tried in order, so whatever the photographer hands over works
 // without renaming. webp leads because that is what the catalogue ships — a
-// miss here costs a real 404 per image before the fallback resolves. Once
-// products come from the database this whole component collapses to
-// <img src={product.image} />.
+// miss costs a real 404 per image before the fallback resolves.
 const EXTENSIONS = ["webp", "png", "jpg", "jpeg"];
 
 export default function ProductPhoto({
@@ -27,12 +28,17 @@ export default function ProductPhoto({
   sizes = "(max-width: 700px) 50vw, (max-width: 1200px) 33vw, 25vw",
 }) {
   const [attempt, setAttempt] = useState(0);
+
   // Cart lines can outlive the product they point at, so never assume one.
-  const exhausted = !p?.id || attempt >= EXTENSIONS.length;
+  const candidates = [
+    p?.image,
+    ...(p?.id ? EXTENSIONS.map((ext) => `/products/${p.id}.${ext}`) : []),
+  ].filter(Boolean);
+  const src = candidates[attempt];
 
   return (
     <div className={`plate ph ${className}`.trim()} style={style}>
-      {exhausted ? (
+      {!src ? (
         <span>{label ?? `${p?.name ?? "Product"} — product photo`}</span>
       ) : (
         // next/image so each context gets a right-sized file: the source
@@ -41,8 +47,8 @@ export default function ProductPhoto({
         <Image
           key={attempt}
           className="product-photo-img"
-          src={`/products/${p.id}.${EXTENSIONS[attempt]}`}
-          alt={`${p.name} — ${p.fabric} ${p.pieces}`}
+          src={src}
+          alt={label ?? `${p.name} — ${p.fabric} ${p.pieces}`}
           fill
           sizes={sizes}
           onError={() => setAttempt((n) => n + 1)}

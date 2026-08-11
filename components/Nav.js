@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import AnnounceBar from "@/components/AnnounceBar";
 import { useCart } from "@/lib/cart-context";
+import { useSession, apiLogout } from "@/hooks/useSession";
+import { useOrderUpdates } from "@/hooks/useOrderUpdates";
 import { MEGA_NAV, UTILITY_LINKS } from "@/lib/site-config";
 import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 
@@ -28,6 +31,10 @@ function BrandMark({ priority = false }) {
 // element below it — used by the landing page so the hero shows through.
 export default function Nav({ overlay = false }) {
   const { cartCount, openCart } = useCart();
+  const { customer, isLoggedIn, mutate: mutateSession } = useSession();
+  const { updatedOrders, updatedCount, statusLabel } = useOrderUpdates();
+  const router = useRouter();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   // Which mega panel is open on desktop, and which drawer group is expanded on
@@ -35,6 +42,13 @@ export default function Nav({ overlay = false }) {
   // visible at the same time.
   const [openPanel, setOpenPanel] = useState(null);
   const [openGroup, setOpenGroup] = useState(null);
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchRef = useRef(null);
+  const accountRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   // Lock the page behind the drawer, and close on Escape.
   useEffect(() => {
@@ -67,6 +81,55 @@ export default function Nav({ overlay = false }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [openPanel]);
 
+  // Close the search/account flyouts on outside click or Escape.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const toggleSearch = () => {
+    setAccountOpen(false);
+    setOpenPanel(null);
+    setSearchOpen((v) => !v);
+  };
+  const toggleAccount = () => {
+    setSearchOpen(false);
+    setOpenPanel(null);
+    setAccountOpen((v) => !v);
+  };
+
+  const logout = async () => {
+    setAccountOpen(false);
+    await apiLogout().catch(() => {});
+    await mutateSession();
+    router.push("/");
+  };
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    if (!searchValue.trim()) return;
+    router.push(`/shop?q=${encodeURIComponent(searchValue.trim())}`);
+    setSearchOpen(false);
+  };
+
   // An open mega panel needs a solid backdrop too — its own white surface
   // against a transparent header would look detached.
   const solid = scrolled || Boolean(openPanel);
@@ -84,10 +147,7 @@ export default function Nav({ overlay = false }) {
         ))}
       </div>
 
-      <header
-        className="eth-header"
-        onMouseLeave={() => setOpenPanel(null)}
-      >
+      <header className="eth-header" onMouseLeave={() => setOpenPanel(null)}>
         <div className="eth-header-bar">
           <button
             className="btn btn-icon eth-toggle"
@@ -155,19 +215,109 @@ export default function Nav({ overlay = false }) {
           </nav>
 
           <div className="eth-actions">
-            <button className="btn btn-icon" aria-label="Search">
-              <Search size={19} strokeWidth={1.6} />
-            </button>
-            <button className="btn btn-icon eth-action-account" aria-label="Account">
-              <User size={19} strokeWidth={1.6} />
-            </button>
+            <div className="nav-action-item" ref={searchRef}>
+              <button
+                className="btn btn-icon"
+                aria-label="Search"
+                aria-expanded={searchOpen}
+                onClick={toggleSearch}
+              >
+                <Search size={19} strokeWidth={1.6} />
+              </button>
+              {searchOpen && (
+                <div className="nav-flyout nav-search-flyout">
+                  <form onSubmit={submitSearch}>
+                    <input
+                      ref={searchInputRef}
+                      className="input"
+                      style={{ flex: 1 }}
+                      placeholder="Search suits, fabric…"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                    />
+                    <button
+                      className="btn btn-icon"
+                      type="submit"
+                      aria-label="Submit search"
+                    >
+                      <Search size={15} strokeWidth={2} />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+
+            <div className="nav-action-item" ref={accountRef}>
+              <button
+                className="btn btn-icon eth-action-account"
+                aria-label={
+                  updatedCount > 0
+                    ? `Account — ${updatedCount} order update${updatedCount > 1 ? "s" : ""}`
+                    : "Account"
+                }
+                aria-expanded={accountOpen}
+                onClick={toggleAccount}
+              >
+                <User size={19} strokeWidth={1.6} />
+                {updatedCount > 0 && (
+                  <span className="nav-alert-dot" aria-hidden="true" />
+                )}
+              </button>
+              {accountOpen && (
+                <div className="nav-flyout nav-account-flyout">
+                  {isLoggedIn ? (
+                    <>
+                      <div style={{ fontSize: 12, opacity: 0.6, padding: "2px 0 6px" }}>
+                        Signed in as {customer.name}
+                      </div>
+                      {updatedOrders.map((o) => (
+                        <a
+                          key={o.id}
+                          href="/track"
+                          className="nav-account-update"
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          <span className="nav-alert-dot static" aria-hidden="true" />
+                          {o.id} is now {statusLabel(o.status)}
+                        </a>
+                      ))}
+                      <a href="/track" onClick={() => setAccountOpen(false)}>
+                        My orders
+                      </a>
+                      <a href="/contact" onClick={() => setAccountOpen(false)}>
+                        Contact us
+                      </a>
+                      <button
+                        className="btn-ghost"
+                        style={{ textAlign: "left", padding: 0, font: "inherit" }}
+                        onClick={logout}
+                      >
+                        Log out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <a href="/login" onClick={() => setAccountOpen(false)}>
+                        Log in
+                      </a>
+                      <a href="/track" onClick={() => setAccountOpen(false)}>
+                        My orders
+                      </a>
+                      <a href="/contact" onClick={() => setAccountOpen(false)}>
+                        Contact us
+                      </a>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button className="btn btn-icon" aria-label="Cart" onClick={openCart}>
               <ShoppingBag size={19} strokeWidth={1.6} />
               {cartCount > 0 && <span className="nav-cart-badge">{cartCount}</span>}
             </button>
           </div>
         </div>
-
       </header>
     </>
   );
@@ -175,9 +325,7 @@ export default function Nav({ overlay = false }) {
   return (
     <>
       {overlay ? (
-        <div
-          className={`eth-chrome-overlay${solid ? " eth-chrome-solid" : ""}`}
-        >
+        <div className={`eth-chrome-overlay${solid ? " eth-chrome-solid" : ""}`}>
           {chrome}
         </div>
       ) : (
@@ -256,6 +404,53 @@ export default function Nav({ overlay = false }) {
             </a>
           ),
         )}
+
+        {/* Account and order links, so everything in the desktop flyouts is
+            reachable from the phone drawer too. */}
+        <div className="eth-drawer-account">
+          {isLoggedIn ? (
+            <>
+              <a
+                href="/track"
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={() => setMenuOpen(false)}
+              >
+                My orders
+                {updatedCount > 0 && (
+                  <span className="nav-alert-dot static" aria-hidden="true" />
+                )}
+              </a>
+              <button
+                className="btn-ghost"
+                style={{ textAlign: "left", padding: 0, font: "inherit" }}
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <a
+                href="/login"
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={() => setMenuOpen(false)}
+              >
+                Log in
+              </a>
+              <a
+                href="/track"
+                tabIndex={menuOpen ? 0 : -1}
+                onClick={() => setMenuOpen(false)}
+              >
+                Track an order
+              </a>
+            </>
+          )}
+        </div>
 
         <div className="eth-drawer-utility">
           {UTILITY_LINKS.map((link) => (

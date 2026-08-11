@@ -1,5 +1,5 @@
 import Reveal from "@/components/Reveal";
-import { TRUST_ITEMS } from "@/lib/products";
+import { TRUST_ITEMS } from "@/lib/site-config";
 
 // The four reassurances — COD, WhatsApp, delivery, exchanges. Each cell
 // reveals on a stagger so they read left to right (top to bottom once the

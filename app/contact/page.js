@@ -21,9 +21,10 @@ export default function ContactPage() {
         <div className="eth-eyebrow">Get in touch</div>
         <h1 className="eth-page-title">Let's talk fabric.</h1>
         <p className="eth-page-copy">
-          Most of our customers order over WhatsApp — it's the fastest way to
-          check stock, confirm a colourway, or ask before you buy. Write your
-          message below and we'll pick it up from there.
+          Orders are placed on the site and tracked from your account — but for
+          anything else, WhatsApp is the fastest way to check stock, confirm a
+          colourway, or ask before you buy. Write your message below and we'll
+          pick it up from there.
         </p>
       </div>
 

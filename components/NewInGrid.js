@@ -1,5 +1,3 @@
-"use client";
-import { useCart } from "@/lib/cart-context";
 import ProductCard from "@/components/ProductCard";
 
 function formatDate(iso) {
@@ -8,7 +6,6 @@ function formatDate(iso) {
 }
 
 export default function NewInGrid({ products }) {
-  const { openProduct } = useCart();
   return (
     <div className="page-body eth-page-body">
       <div className="eth-grid">
@@ -16,7 +13,6 @@ export default function NewInGrid({ products }) {
           <ProductCard
             key={p.id}
             product={p}
-            onOpen={openProduct}
             badge={<span className="eth-badge eth-badge-new">New</span>}
             note={`${formatDate(p.arrivedAt)} · ${p.fabric}`}
           />

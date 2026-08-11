@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
-import { getProductById, FABRIC_GUIDE, PRODUCTS } from "@/lib/products";
+import { useProducts } from "@/hooks/useProducts";
+import { FABRIC_GUIDE } from "@/lib/site-config";
 import ProductPhoto from "@/components/ProductPhoto";
 import { X, Minus, Plus, ArrowLeft, ShoppingBag } from "lucide-react";
 
@@ -16,9 +17,13 @@ export default function ProductModal() {
     addToCart,
     openCart,
     openProduct,
+    getProductById,
   } = useCart();
   // Declared before the early return — hook order has to stay stable.
   const [openSection, setOpenSection] = useState(null);
+  // Same reason: the related row needs the catalogue, and the fetch cannot sit
+  // behind the `if (!activeProductId)` return. SWR shares this with the grids.
+  const { products: catalogue } = useProducts({ pageSize: 5 });
 
   if (!activeProductId) return null;
   const p = getProductById(activeProductId);
@@ -28,10 +33,13 @@ export default function ProductModal() {
     p.compareAt && p.compareAt > p.price
       ? Math.round(((p.compareAt - p.price) / p.compareAt) * 100)
       : null;
-  const activeColor =
-    p.colors.find((c) => c.id === activeColorId) ?? p.colors[0];
+  // Stock lives on the colourway, so what's addable depends on which one is
+  // selected. Nothing selected, or nothing left of it, means nothing to add.
+  const activeColor = p.colors.find((c) => c.id === activeColorId) || null;
+  const inStock = !!activeColor && activeColor.stock > 0;
+  const maxQty = Math.max(1, activeColor?.stock || 1);
   const fabric = FABRIC_GUIDE.find((f) => f.name === p.fabric);
-  const related = PRODUCTS.filter((x) => x.id !== p.id).slice(0, 4);
+  const related = catalogue.filter((x) => x.id !== p.id).slice(0, 4);
 
   // Every line below comes from the catalogue or the fabric guide — nothing
   // here is placeholder copy standing in for a real product description.
@@ -184,11 +192,14 @@ export default function ProductModal() {
                     key={c.id}
                     className="swatch"
                     onClick={() => setActiveColorId(c.id)}
-                    title={c.label}
+                    title={c.stock > 0 ? c.label : `${c.label} — out of stock`}
                     style={{
                       background: c.hex,
                       width: 28,
                       height: 28,
+                      // Sold-out colourways stay visible but read as unavailable
+                      // rather than silently failing at checkout.
+                      opacity: c.stock > 0 ? 1 : 0.35,
                       boxShadow:
                         activeColorId === c.id
                           ? "0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent)"
@@ -197,6 +208,16 @@ export default function ProductModal() {
                   />
                 ))}
               </div>
+              {activeColor && (
+                <div style={{ fontSize: 12, marginTop: 6, opacity: 0.75 }}>
+                  {activeColor.label}
+                  {activeColor.stock === 0
+                    ? " · out of stock"
+                    : activeColor.stock <= 3
+                      ? ` · only ${activeColor.stock} left`
+                      : ""}
+                </div>
+              )}
               <div
                 className="pm-label"
                 style={{
@@ -224,7 +245,7 @@ export default function ProductModal() {
                 </div>
                 <div
                   className="btn btn-secondary qty-btn"
-                  onClick={() => setActiveQty(activeQty + 1)}
+                  onClick={() => setActiveQty(Math.min(maxQty, activeQty + 1))}
                 >
                   <Plus size={14} strokeWidth={2} />
                 </div>
@@ -232,14 +253,15 @@ export default function ProductModal() {
               <button
                 className="btn btn-primary btn-block pm-add"
                 onClick={() => addToCart(p.id, activeColorId, activeQty)}
+                disabled={!inStock}
               >
-                Add to Cart
+                {inStock ? "Add to Cart" : "Out of Stock"}
               </button>
               <div
                 className="pm-note"
                 style={{ fontSize: 12, opacity: 0.65, marginTop: 6 }}
               >
-                Cash on Delivery available · Estimated delivery 3–7 days
+                Cash on Delivery, JazzCash or Easypaisa · Estimated delivery 3–7 days
               </div>
             </div>
           </div>
@@ -309,8 +331,9 @@ export default function ProductModal() {
         <button
           className="pm-actionbar-btn"
           onClick={() => addToCart(p.id, activeColorId, activeQty)}
+          disabled={!inStock}
         >
-          Add to Bag
+          {inStock ? "Add to Bag" : "Out of Stock"}
         </button>
       </div>
     </div>

@@ -1,23 +1,19 @@
 "use client";
 import { useRef } from "react";
-import { PRODUCTS } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 import ProductPhoto from "@/components/ProductPhoto";
 import Reveal from "@/components/Reveal";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// String-keyed selection: the homepage is a Server Component, so a function
-// prop cannot cross into a client one.
-const SELECTORS = {
-  all: (list) => list,
-  new: (list) => [...list].sort((a, b) => b.arrivedAt.localeCompare(a.arrivedAt)),
-  sale: (list) => list.filter((p) => p.compareAt && p.compareAt > p.price),
-};
-
-export default function ProductCarousel({ title, select = "all", limit = 8 }) {
+// Products are fetched by the Server Component that renders this (app/page.js)
+// and passed in, rather than fetched here: the homepage carousel is the first
+// thing above the fold, so it ships with the HTML instead of popping in after
+// a client round trip. Selection and limit are applied server-side by the
+// caller's getProducts() query.
+export default function ProductCarousel({ title, products = [] }) {
   const { openProduct } = useCart();
   const trackRef = useRef(null);
-  const items = (SELECTORS[select] ?? SELECTORS.all)(PRODUCTS).slice(0, limit);
+  const items = products;
 
   // Steps by one card, measured from the track itself, so it stays correct as
   // the visible-card count changes across breakpoints.
