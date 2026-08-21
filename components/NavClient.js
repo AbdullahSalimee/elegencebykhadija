@@ -117,6 +117,14 @@ export default function NavClient({
   const toggleSearch = () => {
     setAccountOpen(false);
     setOpenPanel(null);
+    // Opening the box on a results page starts from the term that produced it,
+    // so the next search refines this one instead of beginning from blank.
+    // Read off location rather than useSearchParams(): this nav renders on
+    // static pages too, and that hook would opt every one of them out of
+    // static rendering.
+    if (!searchOpen) {
+      setSearchValue(new URLSearchParams(window.location.search).get("q") || "");
+    }
     setSearchOpen((v) => !v);
   };
   const toggleAccount = () => {

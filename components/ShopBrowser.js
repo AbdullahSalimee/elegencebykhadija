@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useProductsInfinite, useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useSiteConfig";
 import ProductCard from "@/components/ProductCard";
@@ -36,6 +37,33 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
     const t = setTimeout(() => setQuery(queryInput), 300);
     return () => clearTimeout(t);
   }, [queryInput]);
+
+  // Searching from the nav while already on /shop only changes the URL — this
+  // component stays mounted, so state seeded from initialQuery would hold the
+  // previous term and go on showing the previous results. Following the URL is
+  // what makes that search land.
+  const urlQuery = useSearchParams().get("q") || "";
+  // The ref separates a URL someone else changed (a nav search, the back
+  // button) from the echo of one this component just wrote — without it, that
+  // echo can land a keystroke late and reset the box to a stale term.
+  const lastWrittenQuery = useRef(initialQuery);
+  useEffect(() => {
+    if (urlQuery === lastWrittenQuery.current) return;
+    lastWrittenQuery.current = urlQuery;
+    setQueryInput(urlQuery);
+    setQuery(urlQuery);
+  }, [urlQuery]);
+
+  // ...and the box writes its term back, so a search done here can be shared,
+  // reloaded and reached with the back button like one done from the nav.
+  // history.replaceState rather than router.replace: SWR already has the
+  // results, so no new server render is needed, and being synchronous it can't
+  // race a slow round trip into overwriting what's still being typed.
+  useEffect(() => {
+    if (query === urlQuery) return;
+    lastWrittenQuery.current = query;
+    window.history.replaceState(null, "", query ? `/shop?q=${encodeURIComponent(query)}` : "/shop");
+  }, [query, urlQuery]);
 
   const filters = useMemo(
     () => ({
@@ -356,9 +384,11 @@ export default function ShopBrowser({ initialProducts, initialTotal, pageSize = 
         <div className="shop-results">
           {!isLoading && products.length === 0 ? (
             <div className="admin-empty panel">
-              No pieces match these filters.{" "}
+              {query
+                ? `Nothing matches “${query}”. Try a fabric — lawn, silk, karandi — or a collection name.`
+                : "No pieces match these filters."}{" "}
               <button className="btn-ghost" onClick={clearAll}>
-                Clear filters
+                {query ? "Clear search" : "Clear filters"}
               </button>
             </div>
           ) : (
